@@ -6,7 +6,6 @@ import org.board.enumerables.Role;
 import java.util.ArrayList;
 
 public class Player {
-    private static int loadedPlayers;
     private static ArrayList<Player> players = new ArrayList();
 
     // Role Cards
@@ -52,6 +51,14 @@ public class Player {
 
 
     /* Static Methods */
+
+    public static void reset() {
+        players = new ArrayList<>();
+    }
+
+    public static ArrayList<Player> getPlayers() {
+        return players;
+    }
 
     public static void addPlayer(String name, int pawn, Role role) throws Exception {
         if (players == null) {

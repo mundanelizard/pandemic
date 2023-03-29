@@ -1,0 +1,35 @@
+package org.board.entities;
+
+import java.util.ArrayList;
+
+public class InfectionCard {
+    private static ArrayList<InfectionCard> cards;
+
+    final private int id;
+
+    private InfectionCard(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    /* Static Methods */
+
+    public static void addCard(int id) {
+        cards.add(new InfectionCard(id));
+    }
+
+
+    public static ArrayList<InfectionCard> getCards() {
+        var newCards = new ArrayList<InfectionCard>();
+
+        for (var card : cards) {
+            var newCard = new InfectionCard(card.getId());
+            newCards.add(newCard);
+        }
+
+        return newCards;
+    }
+}

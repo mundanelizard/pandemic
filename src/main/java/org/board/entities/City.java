@@ -1,7 +1,7 @@
-package org.example.objects;
+package org.board.entities;
 
 
-import org.example.enumerables.Colour;
+import org.board.enumerables.Colour;
 
 import java.util.ArrayList;
 
@@ -21,6 +21,14 @@ public class City {
         neighbours = new ArrayList<>();
     }
 
+    public Colour getColour() {
+        return colour;
+    }
+
+    public ArrayList<Integer> getNeighbours() {
+        return neighbours;
+    }
+
     public void addEdge(int id) throws Exception {
         if(neighbours.contains(id)) {
             throw new Exception("Neighbour has already been attached to this city");
@@ -33,12 +41,26 @@ public class City {
         return id;
     }
 
+    /* Static Methods */
+
     public static void addCity(int id, String name, Colour colour) {
          cities.add(new City(id, name, colour));
     }
 
-    public static ArrayList<City> getCities() {
-         return cities;
+    public static ArrayList<City> getCities() throws Exception {
+        var newCities = new ArrayList<City>();
+
+        for (var city : cities) {
+            var newCity = new City(city.id, city.name, city.colour);
+
+            for (var neighbour : city.neighbours) {
+                newCity.addEdge(neighbour);
+            }
+
+            newCities.add(newCity);
+        }
+
+        return newCities;
     }
 
     public static void connect(City firstCity, City secondCity) throws Exception {

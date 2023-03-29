@@ -1,4 +1,4 @@
-package org.example.enumerables;
+package org.board.enumerables;
 
 public enum Colour {
     Red,

@@ -1,9 +1,9 @@
-package org.example.objects;
+package org.board.entities;
 
 
-import org.example.enumerables.Role;
+import org.board.enumerables.Role;
 
-class Player {
+public class Player {
     /* Class Variables */
     private static Player[] players;
     private static int loadedPlayers;
@@ -15,6 +15,8 @@ class Player {
     private Role role;
     private int pawn;
     private String name;
+
+    private hand
 
     private Player(String name, int pawn, Role role) {
         this.name = name;

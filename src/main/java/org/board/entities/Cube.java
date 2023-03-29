@@ -1,6 +1,6 @@
-package org.example.objects;
+package org.board.entities;
 
-import org.example.enumerables.Colour;
+import org.board.enumerables.Colour;
 
 import java.util.ArrayList;
 
@@ -39,15 +39,20 @@ public class Cube {
     }
 
     public void remove() {
-        this.city = 0;
+        this.city = -1;
     }
 
+    public boolean empty() {
+        return this.city == -1;
+    }
+
+    /* Static Methods */
 
     public static void addCube(int id, Colour colour) {
         cubes.add(new Cube(id, colour));
     }
 
-    public ArrayList<Cube> getCubes() throws Exception {
+    public static ArrayList<Cube> getCubes() throws Exception {
         var newCubes = new ArrayList<Cube>();
 
         for (var cube : cubes) {
@@ -57,5 +62,15 @@ public class Cube {
         }
 
         return newCubes;
+    }
+
+    public static Cube getEmptyCube(Colour colour) {
+        for (var cube : cubes) {
+            if (cube.colour == colour && cube.empty()) {
+                return cube;
+            }
+        }
+
+        return null;
     }
 }

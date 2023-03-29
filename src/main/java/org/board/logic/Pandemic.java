@@ -21,6 +21,8 @@ public class Pandemic {
 
     ArrayList<City> cities = new ArrayList<>();
     ArrayList<PlayerCard> playerCards = new ArrayList<>();
+    int playerCardIndex = 0;
+
     ArrayList<InfectionCard> infectionCards = new ArrayList<>();
     ArrayList<Cube> cubes = new ArrayList<>();
     ArrayList<Player> players = new ArrayList<>();
@@ -30,7 +32,6 @@ public class Pandemic {
         cities = Loader.loadCityGraph();
         infectionCards = Loader.loadInfectionCards();
         playerCards = Loader.loadPlayerCards();
-
         boardState = Loader.loadEmptyBoardState();
         cubes = Loader.loadCubes();
 
@@ -39,12 +40,32 @@ public class Pandemic {
         outbreakMarkerState = 0;
         Arrays.fill(cureIndicatorState, 0);
 
-
         players = Loader.loadPlayers();
 
-        dealPlayersCards();
+        dealPlayersCardsToPlayer();
     }
 
+    private void dealPlayersCardsToPlayer() {
+        for (var player : players) {
+            var dealCount = 2;
+
+            if (players.size() == 2) {
+                dealCount = 4;
+            } else if (players.size() == 3) {
+                dealCount = 3;
+            }
+
+            for (int i = 0; i < dealCount; i++) {
+                player.addCard(dealPlayerCard());
+            }
+        }
+    }
+
+    private PlayerCard dealPlayerCard() {
+        var playerCard = playerCards.get(playerCardIndex);
+        playerCardIndex += 1;
+        return playerCard;
+    }
 
     private void initialiseStation() throws Exception {
         var atlanta = City.getCityByName("Atlanta");
@@ -55,8 +76,6 @@ public class Pandemic {
 
         Station.place(boardState, atlanta.getId());
     }
-
-
 
     void start() throws Exception {
         boolean isRunning = true;

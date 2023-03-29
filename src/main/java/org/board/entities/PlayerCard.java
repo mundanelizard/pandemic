@@ -19,6 +19,10 @@ public class PlayerCard {
         return city;
     }
 
+    public Card getType() {
+        return type;
+    }
+
     /* Static Methods */
 
     public static void addCard(int city, Card type) {

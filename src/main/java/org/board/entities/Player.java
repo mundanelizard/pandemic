@@ -3,25 +3,30 @@ package org.board.entities;
 
 import org.board.enumerables.Role;
 
+import java.util.ArrayList;
+
 public class Player {
-    /* Class Variables */
-    private static Player[] players;
     private static int loadedPlayers;
+    private static ArrayList<Player> players = new ArrayList();
 
     // Role Cards
     final static private int TOTAL_ROLE_CARDS = 6;
 
     /* Member Variables */
-    private Role role;
-    private int pawn;
-    private String name;
+    final private Role role;
+    final private int pawn;
+    final private String name;
 
-    private hand
+    final private ArrayList<PlayerCard> cards = new ArrayList<>();
 
     private Player(String name, int pawn, Role role) {
         this.name = name;
         this.pawn = pawn;
         this.role = role;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public int getPawn() {
@@ -32,17 +37,23 @@ public class Player {
         return role;
     }
 
-    /* Static Methods */
-    public static void init(int numberOfPlayers) throws Exception {
-        if (players != null) {
-            throw new Exception("Players has already been instantiated");
-        }
-
-        players = new Player[numberOfPlayers];
-        loadedPlayers = 0;
+    public void addCard(PlayerCard card) {
+        cards.add(card);
     }
 
-    public static Player build(String name, int pawn, Role role) throws Exception {
+    public PlayerCard removeCard(int index) {
+        return cards.remove(index);
+    }
+
+    public ArrayList<PlayerCard> getHand() {
+        return cards;
+    }
+
+
+
+    /* Static Methods */
+
+    public static void addPlayer(String name, int pawn, Role role) throws Exception {
         if (players == null) {
             throw new Exception("Players hasn't been instantiated");
         }
@@ -57,18 +68,11 @@ public class Player {
 
         var player = new Player(name, pawn, role);
 
-        players[loadedPlayers] = player;
-        loadedPlayers += 1;
-
-        return player;
+        players.add(player);
     }
 
     private static String autoGenerateName() {
-        return "blind-turtle";
-    }
-
-    public static boolean ready() {
-        return players.length == loadedPlayers;
+        return "Player " + (players.size() + 1);
     }
 
     private static void validatePlayerRoleConstraints(Role role) throws Exception {

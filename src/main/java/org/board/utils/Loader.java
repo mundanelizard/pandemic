@@ -10,14 +10,17 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 public class Loader {
+    Scanner scanner = new Scanner(System.in);
     static final private String FILENAME = "map.txt";
     static private ArrayList<City> cities = new ArrayList<>();
 
     static public ArrayList<Player> loadPlayers() {
+        Player.reset();
+
         // assign the user a random role
         // assign a reference card - not needed
 
-        return new ArrayList<>();
+        return Player.getPlayers();
     }
 
     static public ArrayList<Cube> loadCubes() throws Exception {

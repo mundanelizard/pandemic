@@ -31,6 +31,8 @@ public class City {
 
     public void addEdge(int id) throws Exception {
         if(neighbours.contains(id)) {
+            System.out.println(neighbours);
+            System.out.println(id);
             throw new Exception("Neighbour has already been attached to this city");
         }
 

@@ -23,6 +23,20 @@ public class Loader {
         return Player.getPlayers();
     }
 
+    static public ArrayList<Station> loadStations() throws Exception {
+        var stations = Station.getStations();
+
+        if (stations.size() == 6) {
+            return stations;
+        }
+
+        for (int i = 0; i < 6; i++) {
+            Station.addStation(i);
+        }
+
+        return Station.getStations();
+    }
+
     static public ArrayList<Cube> loadCubes() throws Exception {
         for (var colour : Colour.values()) {
             var padding = colour.ordinal() * 24;
@@ -36,11 +50,11 @@ public class Loader {
     }
 
     static public int[][][] loadEmptyBoardState() {
-        int[][][] boardState = new int[48][3][];
+        int[][][] boardState = new int[48][3][24];
 
-        for (int i = 0; i < boardState.length; i++) {
-            for (int j = 0; j < boardState[i].length; i++) {
-                Arrays.fill(boardState[i][j], -1);
+        for (int[][] ints : boardState) {
+            for (int[] anInt : ints) {
+                Arrays.fill(anInt, -1);
             }
         }
 
@@ -76,6 +90,7 @@ public class Loader {
             return infectionCards;
         }
 
+
         // 48 cards representing each city
         for (var city : cities) {
             InfectionCard.addCard(city.getId());
@@ -93,19 +108,19 @@ public class Loader {
             return cities;
         }
 
-        var start = 0;
         var handle = new File(FILENAME);
         var reader = new Scanner(handle);
 
-        start = loadCities(reader, start);
-        loadConnections(reader, start);
+        loadCities(reader);
+        loadConnections(reader);
 
-        return City.getCities();
+        cities = City.getCities();
+
+        return cities;
     }
 
-    private static int loadCities(Scanner reader, int start) {
-        while(reader.hasNextLine()) {
-            start += 1;
+    private static void loadCities(Scanner reader) {
+        for(int id = 0; reader.hasNextLine(); id++) {
             var line = reader.nextLine();
             if (line.equals("--")) break;
 
@@ -114,22 +129,19 @@ public class Loader {
             var name = segments[0];
             var colour = segments[1];
 
-            City.addCity(start, name, Colour.getColour(colour));
+            City.addCity(id, name, Colour.getColour(colour));
         }
-
-        return start;
     }
 
-    private static void loadConnections(Scanner reader, int start) throws Exception {
+    private static void loadConnections(Scanner reader) throws Exception {
         while(reader.hasNextLine()) {
-            start += 1;
             var line = reader.nextLine();
             if (line.equals("--")) break;
 
             var segments = line.split(";");
 
             var firstCity = segments[0];
-            var secondCity = segments[0];
+            var secondCity = segments[1];
 
             City.connect(firstCity, secondCity);
         }

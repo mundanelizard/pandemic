@@ -3,7 +3,7 @@ package org.board.entities;
 import java.util.ArrayList;
 
 public class InfectionCard {
-    private static ArrayList<InfectionCard> cards;
+    private static ArrayList<InfectionCard> cards = new ArrayList<>();
 
     final private int id;
 

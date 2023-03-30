@@ -1,51 +1,51 @@
-Atlanta
-Chicago
-San Francisco
-Montreal
-Washington
-New York
-London
-Madrid
-Essen
-Paris
-Milan
-St. Petersburg
-Los Angeles
-Mexico City
-Lima
-Santiago
-Miami
-Bogota
-Buenos Aires
-Sao Paulo
-Lagos
-Kinshasa
-Khartoum
-Johannesburg
-Algiers
-Istanbul
-Cairo
-Moscow
-Baghdad
-Riyadh
-Tehran
-Karachi
-Mumbai
-Delhi
-Kolkata
-Chennai
-Bangkok
-Jakarta
-Beijing
-Shanghai
-Hong Kong
-Ho Chi Minh City
-Seoul
-Taipei
-Manila
-Sydney
-Tokyo
-Osaka
+Atlanta;Blue
+Chicago;Blue
+San Francisco;Blue
+Montreal;Blue
+Washington;Blue
+New York;Blue
+London;Blue
+Madrid;Blue
+Essen;Blue
+Paris;Blue
+Milan;Blue
+St. Petersburg;Blue
+Los Angeles;Yellow
+Mexico City;Yellow
+Lima;Yellow
+Santiago;Yellow
+Miami;Yellow
+Bogota;Yellow
+Buenos Aires;Yellow
+Sao Paulo;Yellow
+Lagos;Yellow
+Kinshasa;Yellow
+Khartoum;Yellow
+Johannesburg;Yellow
+Algiers;Black
+Istanbul;Black
+Cairo;Black
+Moscow;Black
+Baghdad;Black
+Riyadh;Black
+Tehran;Black
+Karachi;Black
+Mumbai;Black
+Delhi;Black
+Kolkata;Black
+Chennai;Black
+Bangkok;Red
+Jakarta;Red
+Beijing;Red
+Shanghai;Red
+Hong Kong;Red
+Ho Chi Minh City;Red
+Seoul;Red
+Taipei;Red
+Manila;Red
+Sydney;Red
+Tokyo;Red
+Osaka;Red
 --
 Atlanta;Washington
 Atlanta;Chicago

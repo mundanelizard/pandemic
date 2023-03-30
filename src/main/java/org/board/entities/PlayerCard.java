@@ -5,7 +5,7 @@ import org.board.enumerables.Card;
 import java.util.ArrayList;
 
 public class PlayerCard {
-    private static ArrayList<PlayerCard> cards;
+    private static ArrayList<PlayerCard> cards = new ArrayList<>();
 
     final private int city;
     final private Card type;

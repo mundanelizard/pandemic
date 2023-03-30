@@ -30,7 +30,7 @@ public class Station {
     }
 
     public void setCity(int city) throws Exception {
-        if (city != -1) {
+        if (!empty()) {
             throw new Exception("Station " + id + " is already placed on the board.");
         }
 
@@ -44,11 +44,11 @@ public class Station {
 
     /* Static Methods */
 
-    public static void addCube(int id) {
+    public static void addStation(int id) {
         stations.add(new Station(id));
     }
 
-    public ArrayList<Station> getStations() throws Exception {
+    public static ArrayList<Station> getStations() throws Exception {
         var newStations = new ArrayList<Station>();
 
         for (var station : stations) {
@@ -60,7 +60,7 @@ public class Station {
         return newStations;
     }
 
-    public static Station getEmptyStation() {
+    public static Station getEmptyStation(ArrayList<Station> stations) {
         for (var station : stations) {
             if (station.empty()) {
                 return station;
@@ -68,15 +68,5 @@ public class Station {
         }
 
         return null;
-    }
-
-    public static void place(int[][][] boardState, int cityId) throws Exception {
-        var station = getEmptyStation();
-
-        if (station == null) {
-            throw new Exception("Out of stations.");
-        }
-
-        Utils.insert(boardState, cityId, STATION_BOARD_STATE_INDEX,  station.getId());
     }
 }

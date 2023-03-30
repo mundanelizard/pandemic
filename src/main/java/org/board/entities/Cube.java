@@ -19,7 +19,7 @@ public class Cube {
     }
 
     public void setCity(int city) throws Exception {
-        if (city != -1) {
+        if (!empty()) {
             throw new Exception("Cube " + id + " is already placed on the board.");
         }
 
@@ -64,7 +64,7 @@ public class Cube {
         return newCubes;
     }
 
-    public static Cube getEmptyCube(Colour colour) {
+    public static Cube getEmptyCube(ArrayList<Cube> cubes, Colour colour) {
         for (var cube : cubes) {
             if (cube.colour == colour && cube.empty()) {
                 return cube;

@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Random;
 
 public class Utils {
-    private static Random random = new Random(1);
+    // todo => remove seed when out of testing mode
+    private static final Random random = new Random(1);
 
     public static void insert(int[][][] boardState, int cityId, int typeId, int itemId) {
         insert(boardState[cityId][typeId], itemId);

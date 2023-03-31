@@ -6,15 +6,13 @@ import org.board.enumerables.Role;
 import java.util.ArrayList;
 
 public class Player {
-    private static ArrayList<Player> players = new ArrayList();
-
-    // Role Cards
-    final static private int TOTAL_ROLE_CARDS = 6;
+    private static ArrayList<Player> players = new ArrayList<>();
 
     /* Member Variables */
     final private Role role;
     final private int pawn;
     final private String name;
+    private int city;
 
     final private ArrayList<PlayerCard> cards = new ArrayList<>();
 
@@ -36,6 +34,14 @@ public class Player {
         return role;
     }
 
+    public ArrayList<PlayerCard> getHand() {
+        return cards;
+    }
+
+    public int getCity() {
+        return city;
+    }
+
     public void addCard(PlayerCard card) {
         cards.add(card);
     }
@@ -44,8 +50,8 @@ public class Player {
         return cards.remove(index);
     }
 
-    public ArrayList<PlayerCard> getHand() {
-        return cards;
+    public void setCity(int city) {
+        this.city = city;
     }
 
 
@@ -108,6 +114,7 @@ public class Player {
             for (var player : players) {
                 if (player.getRole() == role) {
                     skip = true;
+                    break;
                 }
             }
 

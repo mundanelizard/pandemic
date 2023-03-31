@@ -1,18 +1,18 @@
 package org.board.logic;
 
 import org.board.entities.*;
-import org.board.enumerables.EndReason;
-import org.board.enumerables.PlayerChoice;
-import org.board.utils.Index;
-import org.board.utils.Loader;
-import org.board.utils.Utils;
+import org.board.enumerables.*;
+import org.board.utils.*;
 
 import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 public class Game {
+
     static final int BOARD_STATE_DISEASE_CUBE_INDEX = 1;
+    static final int BOARD_STATE_PAWN_CUBE_INDEX = 2;
     static final int BOARD_STATE_STATION_CUBE_INDEX = 0;
     /**
      * Coding
@@ -52,7 +52,7 @@ public class Game {
     ArrayList<Station> stations = new ArrayList<>();
 
 
-    private Agent agent = new Agent();
+    final private Agent agent = new Agent();
 
     private boolean running = true;
 
@@ -75,6 +75,8 @@ public class Game {
         Arrays.fill(cureIndicatorState, 0);
 
         players = Loader.loadPlayers();
+        agent.setPlayer(players.get(players.size() - 1));
+        initialisePawns();
 
         Utils.shuffle(playerCards, playerCardIndex.getIndex());
         Utils.shuffle(infectionCards, infectionCardIndex.getIndex());
@@ -101,20 +103,24 @@ public class Game {
     }
 
 
-    private void handleEndgame(EndReason reason) {
+    private void handleEndgame() {
         // You lose if:
         // - 8 outbreaks occur,
         // - not enough disease cubes are left when needed (a disease spreads too much), or,
         // - not enough player cards are left when needed (your team runs out of time).
-        switch (reason) {
-            case OutOfCubes:
-                System.out.println("We ran out of cubes :(");
-            default:
-                System.out.println("Game Over");
-                System.exit(0);
-        }
     }
 
+    private void initialisePawns() throws Exception {
+        var atlanta = City.getCityByName("Atlanta");
+
+        if (atlanta == null) {
+            throw new Exception("Atlanta couldn't be found.");
+        }
+
+        for (var player : players) {
+            Action.placePawn(boardState, player, atlanta.getId());
+        }
+    }
 
     private void initialiseStation() throws Exception {
         var atlanta = City.getCityByName("Atlanta");
@@ -135,31 +141,48 @@ public class Game {
     }
 
     private void handleGamePlay() throws Exception {
-        // options
-        // 1. Play Actions
-        // 2. View All Players Cards
-        // 3. Consult Agent
-        // 4. View Board state
-        // 5. Quit Game
+        var player = players.get(turn);
 
-        switch (getPlayerChoice()) {
-            case PlayerChoice.PerformAction:
-                handlePerformAction();
-                break;
-            case PlayerChoice.ViewCards:
-                handleViewCards();
-                break;
-            case PlayerChoice.ConsultAgent:
-                handleConsultAgent();
-                break;
-            case PlayerChoice.ViewBoardState:
-                handleViewBoardState();
-                break;
-            case PlayerChoice.QuitGame:
-                handleQuitGame();
-                break;
-            default:
-                throw new Exception("Invalid choice");
+        switch (IO.getPlayerChoice(player)) {
+            case PerformAction -> handlePerformAction();
+            case ViewCards -> handleViewCards();
+            case ConsultAgent -> handleConsultAgent();
+            case ViewBoardState -> handleViewBoardState();
+            case QuitGame -> handleQuitGame();
+            default -> throw new Exception("Invalid choice");
         }
+    }
+
+    private void handleQuitGame() {
+        running = false;
+    }
+
+    private void handleViewBoardState() {
+        
+    }
+
+    private void handleConsultAgent() {
+
+    }
+
+    private void handleViewCards() {
+
+    }
+
+    private void handlePerformAction() {
+        var player = players.get(turn);
+
+        // travels all the possible state for the current game
+        for (int i = 0; i < 4 && running; i++) {
+            var actions = Action.getAllPossibleActions(boardState, cities, player);
+            var action = IO.getPlayerActionChoice(actions);
+            running = Action.performAction(action);
+        }
+
+        if (!running) {
+            return;
+        }
+
+        running = Action.drawCardsAndInfectCities(boardState, playerCards, player);
     }
 }

@@ -1,14 +1,14 @@
 package org.board.enumerables;
 
-public enum PlayerChoice {
+public enum Choice {
     PerformAction,
     ViewCards,
     ConsultAgent,
     ViewBoardState,
     QuitGame;
 
-    static public PlayerChoice getChoice(String role) {
-        return PlayerChoice.valueOf(String.join("", role.split("\\s")));
+    static public Choice getChoice(String role) {
+        return Choice.valueOf(String.join("", role.split("\\s")));
     }
 
     public String toString() {

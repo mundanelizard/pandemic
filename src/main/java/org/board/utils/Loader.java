@@ -3,22 +3,47 @@ package org.board.utils;
 import org.board.entities.*;
 import org.board.enumerables.Card;
 import org.board.enumerables.Colour;
+import org.board.enumerables.Role;
+import org.board.logic.Agent;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.Scanner;
 
 public class Loader {
-    Scanner scanner = new Scanner(System.in);
+    static Random random = new Random(1);
     static final private String FILENAME = "map.txt";
     static private ArrayList<City> cities = new ArrayList<>();
 
-    static public ArrayList<Player> loadPlayers() {
+    static public ArrayList<Player> loadPlayers() throws Exception {
         Player.reset();
+        var players = -1;
 
-        // assign the user a random role
-        // assign a reference card - not needed
+        do {
+            System.out.println("How many players do you want (1 - 3)? The agent is always a player in each game.");
+            System.out.print("> ");
+
+            players = IO.shell.nextInt();
+        } while(players < 1 || players > 3);
+
+        int i;
+        for (i = 0; i < players; i++) {
+            System.out.println("What's player " + (i + 1) + " name?");
+            System.out.print("> ");
+            String name = IO.shell.next();
+
+            var roles = Player.getAvailableRoles();
+            var role = roles[random.nextInt(roles.length - 1)];
+
+            Player.addPlayer(name, i, Role.getRole(role));
+        }
+
+        System.out.println();
+        System.out.println("Your Agent name is 'Rupert'");
+        Player.addPlayer(Agent.NAME, i, Role.getRole(Player.getAvailableRoles()[0]));
+        System.out.println();
 
         return Player.getPlayers();
     }

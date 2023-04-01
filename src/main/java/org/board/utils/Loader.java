@@ -94,15 +94,15 @@ public class Loader {
         }
 
         for (var city : cities) {
-            PlayerCard.addCard(city.getId(), Card.Regular);
+            PlayerCard.addCard(city.getId(), Card.Regular, city.getColour());
         }
 
         for (int i = 0; i < 5; i++) {
-            PlayerCard.addCard(-1, Card.Epidemic);
+            PlayerCard.addCard(-1, Card.Epidemic, Colour.Invalid);
         }
 
         for (int i = 0; i < 6; i++) {
-            PlayerCard.addCard(-1, Card.Epidemic);
+            PlayerCard.addCard(-1, Card.Epidemic, Colour.Invalid);
         }
 
         return PlayerCard.getCards();

@@ -43,7 +43,7 @@ public class Action {
         }
     }
 
-    public static boolean performAction(int[][][] boardState, ArrayList<Player> players, Player player, Option choice) {
+    public static boolean performAction(int[][][] boardState, ArrayList<Player> players, ArrayList<Station> stations, Player player, Option choice) throws Exception {
         System.out.println("---58");
         System.out.println("Performing action " + choice.getName());
 
@@ -57,12 +57,33 @@ public class Action {
             case CharterFlight:
                 return handleCharterFlight(boardState, player, choice.disposeCard, choice.endCity);
             case BuildResearchStation:
-                return handleBuildAResearchStation(boardState, player, choice.suit);
+                return handleBuildAResearchStation(boardState, player, stations, choice.suit);
             case Invalid:
             default:
                 // todo => set exit reason --
                 return false;
         }
+    }
+
+    private static boolean handleBuildAResearchStation(int[][][] boardState, Player player, ArrayList<Station> stations, int suit) throws Exception {
+        var cards = player.getHand();
+
+        int count = 0;
+        for (var card : cards) {
+            if (count == 5) break;
+            if (card.getColour() != Colour.values()[suit])
+                continue;
+
+            cards.remove(card);
+            count ++;
+        }
+
+        if (count != 0 && count != 5)
+            return false;
+
+        placeStation(boardState, stations, player.getCity());
+
+        return true;
     }
 
     private static boolean handleCharterFlight(int[][][] boardState, Player player, int cardIndex, int endCity) {
@@ -137,7 +158,6 @@ public class Action {
         for (var card : cards) {
             var city = cities.get(card.getCity());
             var cityName = city.getName();
-            var cityColour = city.getColour();
 
             var cardIndex = cards.indexOf(card);
 
@@ -145,13 +165,13 @@ public class Action {
                 // you can discard card to move to any city.
                 buildOptionsToFlyToAllCities(actions, cities, card, cardIndex, player.getCity());
                 // you can discard this card to build a research station
-                var option = new Option("Dispose card [" + card.getCity() + ", " + cityName +  ", " + cityColour + "] to research station in current city " + cityName);
+                var option = new Option("Dispose card [" + card.getCity() + ", " + cityName +  ", " + card.getColour() + "] to research station in current city " + cityName);
                 option.type = Type.BuildResearchStation;
                 option.disposeCard = cardIndex;
                 actions.add(option);
             } else if(card.getCity() != -1) {
                 // you can discard card to fly directly to the city
-                var option = new Option("Dispose [" + card.getCity() + ", " + cityName + ", " + cityColour + "] to teleport to " + cityName);
+                var option = new Option("Dispose [" + card.getCity() + ", " + cityName + ", " + card.getColour() + "] to teleport to " + cityName);
                 option.type = Type.DirectFlight;
                 option.disposeCard = cardIndex;
                 option.endCity = card.getCity();
@@ -163,7 +183,7 @@ public class Action {
         }
 
         // check if you can discover a cure if the players i greater than 20
-        var cures = getDiseaseCures(cities, cards);
+        var cures = getDiseaseCures(cards);
 
         for (var cure : cures) {
             // don't display the disease if it has been cured
@@ -190,7 +210,7 @@ public class Action {
         }
     }
 
-    private static ArrayList<Integer> getDiseaseCures(ArrayList<City> cities, ArrayList<PlayerCard> cards) {
+    private static ArrayList<Integer> getDiseaseCures(ArrayList<PlayerCard> cards) {
         var cures = new ArrayList<Integer>();
 
         if (cards.size() < 5) {
@@ -201,7 +221,7 @@ public class Action {
 
         for (var card : cards) {
             // counting the number of cards of the same colour
-            var colour = cities.get(card.getCity()).getColour();
+            var colour = card.getColour();
             map[colour.ordinal()] += 1;
         }
 
@@ -217,12 +237,11 @@ public class Action {
     private static void buildOptionsToFlyToAllCities(ArrayList<Option> actions, ArrayList<City> cities, PlayerCard card, int cardIndex, int currentCity) {
         var cardCity = cities.get(card.getCity());
         var cardCityName = cardCity.getName();
-        var cardCityColour = cardCity.getColour();
 
         for (var city: cities) {
             if (city.getId() == currentCity) continue;
 
-            var option = new Option("Dispose [" + card.getCity() + ", " + cardCityName + ", " + cardCityColour + "] to teleport to " + city.getName());
+            var option = new Option("Dispose [" + card.getCity() + ", " + cardCityName + ", " + card.getColour() + "] to teleport to " + city.getName());
             option.disposeCard = cardIndex;
             option.endCity = city.getId();
             option.type = Type.CharterFlight;

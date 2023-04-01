@@ -170,7 +170,7 @@ public class Game {
 
     }
 
-    private void handlePerformAction() {
+    private void handlePerformAction() throws Exception {
         var player = players.get(turn);
         increaseTurn();
 
@@ -178,7 +178,7 @@ public class Game {
         for (int i = 0; i < 4 && running; i++) {
             var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, players, player);
             var choice = IO.getPlayerActionChoice(options, player, i + 1);
-            running = Action.performAction(boardState, players, player, choice);
+            running = Action.performAction(boardState, players, stations, player, choice);
         }
 
         if (!running) {

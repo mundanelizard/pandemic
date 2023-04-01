@@ -1,6 +1,7 @@
 package org.board.enumerables;
 
 public enum Colour {
+    Invalid,
     Red,
     Blue,
     Yellow,

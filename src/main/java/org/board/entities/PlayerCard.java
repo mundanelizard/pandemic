@@ -1,6 +1,7 @@
 package org.board.entities;
 
 import org.board.enumerables.Card;
+import org.board.enumerables.Colour;
 
 import java.util.ArrayList;
 
@@ -9,10 +10,12 @@ public class PlayerCard {
 
     final private int city;
     final private Card type;
+    final private Colour colour;
 
-    private PlayerCard(int city, Card type) {
+    private PlayerCard(int city, Card type, Colour colour) {
         this.city = city;
         this.type = type;
+        this.colour = colour;
     }
 
     public int getCity() {
@@ -23,17 +26,21 @@ public class PlayerCard {
         return type;
     }
 
+    public Colour getColour() {
+        return colour;
+    }
+
     /* Static Methods */
 
-    public static void addCard(int city, Card type) {
-        cards.add(new PlayerCard(city, type));
+    public static void addCard(int city, Card type, Colour colour) {
+        cards.add(new PlayerCard(city, type, colour));
     }
 
     public static ArrayList<PlayerCard> getCards() {
         var newCards = new ArrayList<PlayerCard>();
 
         for (var card : cards) {
-            var newCard = new PlayerCard(card.city, card.type);
+            var newCard = new PlayerCard(card.city, card.type, card.colour);
             newCards.add(newCard);
         }
 

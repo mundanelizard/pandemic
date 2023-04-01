@@ -1,14 +1,11 @@
 package org.board.logic;
 
-import jdk.jshell.execution.Util;
 import org.board.entities.*;
 import org.board.enumerables.Colour;
 import org.board.utils.Index;
 import org.board.utils.Utils;
 
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
 public class Action {
@@ -37,6 +34,15 @@ public class Action {
         public Option(String name) {
             this.name = name;
         }
+
+        public String getName() {
+            return name;
+        }
+    }
+
+    public static boolean performAction(Option choice) {
+        System.out.println("Performing action " + choice.getName());
+        return true;
     }
 
 
@@ -82,7 +88,7 @@ public class Action {
 
             if (card.getCity() == player.getCity()) {
                 // you can discard card to move to any city.
-                buildOptionsToFlyToAllCities(actions, cities, card, cardIndex);
+                buildOptionsToFlyToAllCities(actions, cities, card, cardIndex, player.getCity());
                 // you can discard this card to build a research station
                 var option = new Option("Dispose card [" + card.getCity() + ", " + cityName +  ", " + cityColour + "] to research station in current city " + cityName);
                 option.type = Type.BuildResearchStation;
@@ -153,12 +159,14 @@ public class Action {
         return cures;
     }
 
-    private static void buildOptionsToFlyToAllCities(ArrayList<Option> actions, ArrayList<City> cities, PlayerCard card, int cardIndex) {
+    private static void buildOptionsToFlyToAllCities(ArrayList<Option> actions, ArrayList<City> cities, PlayerCard card, int cardIndex, int currentCity) {
         var cardCity = cities.get(card.getCity());
         var cardCityName = cardCity.getName();
         var cardCityColour = cardCity.getColour();
 
         for (var city: cities) {
+            if (city.getId() == currentCity) continue;
+
             var option = new Option("Dispose [" + card.getCity() + ", " + cardCityName + ", " + cardCityColour + "] to teleport to " + city.getName());
             option.disposeCard = cardIndex;
             option.endCity = city.getId();

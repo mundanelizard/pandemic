@@ -175,7 +175,7 @@ public class Game {
         // travels all the possible state for the current game
         for (int i = 0; i < 4 && running; i++) {
             var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, players, player);
-            var choice = IO.getPlayerActionChoice(options);
+            var choice = IO.getPlayerActionChoice(options, player, i + 1);
             running = Action.performAction(choice);
         }
 
@@ -183,6 +183,6 @@ public class Game {
             return;
         }
 
-        running = Action.drawCardsAndInfectCities(boardState, playerCards, player);
+//        running = Action.drawCardsAndInfectCities(boardState, playerCards, player);
     }
 }

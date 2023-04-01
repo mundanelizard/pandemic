@@ -8,8 +8,7 @@ import org.board.utils.Utils;
 
 import java.sql.Array;
 import java.util.ArrayList;
-
-
+import java.util.HashMap;
 
 
 public class Action {
@@ -24,11 +23,13 @@ public class Action {
         TreatDiseaseRemoveAll,
         EradicateDisease,
         DiscoverACure,
+        TransferCard,
     }
 
     public static class Option {
         int disposeCard = -1;
         int endCity = -1;
+        int endPlayer = -1;
         int suit = -1;
         String name = "";
         Type type = Type.Invalid;
@@ -39,7 +40,7 @@ public class Action {
     }
 
 
-    public static ArrayList<Option> getAllPossibleActions(int[][][] boardState, int[] cureIndicatorState, ArrayList<City> cities, Player player) {
+    public static ArrayList<Option> getAllPossibleActions(int[][][] boardState, int[] cureIndicatorState, ArrayList<City> cities, ArrayList<Player> players, Player player) {
         var actions = new ArrayList<Option>();
         var cards = player.getHand();
         var currentCity = cities.get(player.getCity());
@@ -97,13 +98,16 @@ public class Action {
             }
 
             // you can transfer card to other players.
-            buildOptionsToTransferCardToPlayers(actions, card);
+            buildOptionsToTransferCardToPlayers(actions, players, cardIndex, player.getPawn());
         }
 
         // check if you can discover a cure if the players i greater than 20
-        var cures = getDiseaseCures();
+        var cures = getDiseaseCures(cities, cards);
 
         for (var cure : cures) {
+            // don't display the disease if it has been cured
+            if (cureIndicatorState[cure] == 1) continue;
+
             var option = new Option("Cure disease of colour " + Colour.values()[cure]);
             option.suit = cure;
             option.type = Type.DiscoverACure;
@@ -113,8 +117,40 @@ public class Action {
         return actions;
     }
 
-    private static int[] getDiseaseCures() {
-        return new int[0];
+    private static void buildOptionsToTransferCardToPlayers(ArrayList<Option> actions, ArrayList<Player> players, int cardIndex, int pawn) {
+        for(var player : players) {
+            if (player.getPawn() == pawn) continue;
+
+            var option = new Option("Transfer card to player [" + player.getName() + "]");
+            option.type = Type.TransferCard;
+            option.endPlayer = player.getPawn();
+            option.disposeCard = cardIndex;
+            actions.add(option);
+        }
+    }
+
+    private static ArrayList<Integer> getDiseaseCures(ArrayList<City> cities, ArrayList<PlayerCard> cards) {
+        var cures = new ArrayList<Integer>();
+
+        if (cards.size() < 5) {
+            return cures;
+        }
+
+        var map = new int[Colour.values().length];
+
+        for (var card : cards) {
+            // counting the number of cards of the same colour
+            var colour = cities.get(card.getCity()).getColour();
+            map[colour.ordinal()] += 1;
+        }
+
+        for (var i = 0; i < map.length; i++) {
+            // filter colour that are up to five.
+            if (map[i] < 5) continue;
+            cures.add(i);
+        }
+
+        return cures;
     }
 
     private static void buildOptionsToFlyToAllCities(ArrayList<Option> actions, ArrayList<City> cities, PlayerCard card, int cardIndex) {
@@ -141,14 +177,6 @@ public class Action {
 
         return cubes;
     }
-
-
-    public static boolean drawCardsAndInfectCities(int[][][] boardState, ArrayList<PlayerCard> cards, Player player) {
-
-
-        return true;
-    }
-
 
 
     public static void dealPlayersCardsToPlayer(ArrayList<Player> players, ArrayList<PlayerCard> playerCards, Index playerCardIndex) {

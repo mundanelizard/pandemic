@@ -174,7 +174,7 @@ public class Game {
 
         // travels all the possible state for the current game
         for (int i = 0; i < 4 && running; i++) {
-            var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, player);
+            var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, players, player);
             var choice = IO.getPlayerActionChoice(options);
             running = Action.performAction(choice);
         }

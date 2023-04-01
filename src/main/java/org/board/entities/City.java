@@ -43,6 +43,10 @@ public class City {
         return id;
     }
 
+    public String getName() {
+        return name;
+    }
+
     /* Static Methods */
 
     public static void addCity(int id, String name, Colour colour) {

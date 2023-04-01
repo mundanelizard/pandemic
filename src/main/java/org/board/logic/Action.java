@@ -2,60 +2,145 @@ package org.board.logic;
 
 import jdk.jshell.execution.Util;
 import org.board.entities.*;
+import org.board.enumerables.Colour;
 import org.board.utils.Index;
 import org.board.utils.Utils;
 
 import java.sql.Array;
 import java.util.ArrayList;
 
+
+
+
 public class Action {
+    enum Type {
+        Invalid,
+        DriveOrFerry,
+        DirectFlight,
+        CharterFlight,
+        ShuttleFlight,
+        BuildResearchStation,
+        TreatDiseaseRemoveOneCube,
+        TreatDiseaseRemoveAll,
+        EradicateDisease,
+        DiscoverACure,
+    }
 
-    public static class PlayerAction {
+    public static class Option {
+        int disposeCard = -1;
+        int endCity = -1;
+        int suit = -1;
+        String name = "";
+        Type type = Type.Invalid;
 
+        public Option(String name) {
+            this.name = name;
+        }
     }
 
 
-    public static ArrayList<PlayerAction> getAllPossibleActions(int[][][] boardState, ArrayList<City> cities, Player player) {
-        var actions = new ArrayList<PlayerAction>();
+    public static ArrayList<Option> getAllPossibleActions(int[][][] boardState, int[] cureIndicatorState, ArrayList<City> cities, Player player) {
+        var actions = new ArrayList<Option>();
         var cards = player.getHand();
-        var neighbours = cities.get(player.getCity()).getNeighbours();
+        var currentCity = cities.get(player.getCity());
+        var neighbours = currentCity.getNeighbours();
 
         var cubes = getDiseaseCubes(boardState, player.getCity());
 
-        if (cubes.length > 0) {
-            // todo => check if it has been cured.
+        if (cubes.size() > 0) {
             // you can remove a disease cube from the board or all if it has been cured.
             // if it is the last cube of a curred disease it is eradicated
+            var curred = cureIndicatorState[currentCity.getColour().ordinal()];
+
+            Option option;
+            if (curred == 1) {
+                option = new Option("Cure disease (remove all cubes because it has been cured)");
+                option.type = Type.TreatDiseaseRemoveAll;
+            } else {
+                option = new Option("Cure disease (remove one from cube)");
+                option.type = Type.TreatDiseaseRemoveOneCube;
+            }
+            actions.add(option);
         }
 
         for (var city : neighbours) {
             // you can move via ferry to any city you are connected to
+            var name = cities.get(city).getName();
+            var option = new Option("Move by ferry to " + name);
+            option.endCity = city;
+            option.type = Type.DriveOrFerry;
+            actions.add(option);
         }
 
         for (var card : cards) {
-            if(card.getCity() != -1) {
-                // you can discard card to teleport to this city
-            }
+            var city = cities.get(card.getCity());
+            var cityName = city.getName();
+            var cityColour = city.getColour();
+
+            var cardIndex = cards.indexOf(card);
 
             if (card.getCity() == player.getCity()) {
                 // you can discard card to move to any city.
+                buildOptionsToFlyToAllCities(actions, cities, card, cardIndex);
                 // you can discard this card to build a research station
+                var option = new Option("Dispose card [" + card.getCity() + ", " + cityName +  ", " + cityColour + "] to research station in current city " + cityName);
+                option.type = Type.BuildResearchStation;
+                option.disposeCard = cardIndex;
+                actions.add(option);
+            } else if(card.getCity() != -1) {
+                // you can discard card to fly directly to the city
+                var option = new Option("Dispose [" + card.getCity() + ", " + cityName + ", " + cityColour + "] to teleport to " + cityName);
+                option.type = Type.DirectFlight;
+                option.disposeCard = cardIndex;
+                option.endCity = card.getCity();
+                actions.add(option);
             }
 
             // you can transfer card to other players.
+            buildOptionsToTransferCardToPlayers(actions, card);
         }
 
-        var stations = getCityStations(boardState, player.getCity());
+        // check if you can discover a cure if the players i greater than 20
+        var cures = getDiseaseCures();
 
-        if (stations.length > 0) {
-            addStationsToPossibleActions(actions, stations);
+        for (var cure : cures) {
+            var option = new Option("Cure disease of colour " + Colour.values()[cure]);
+            option.suit = cure;
+            option.type = Type.DiscoverACure;
+            actions.add(option);
         }
-
-
 
         return actions;
     }
 
+    private static int[] getDiseaseCures() {
+        return new int[0];
+    }
+
+    private static void buildOptionsToFlyToAllCities(ArrayList<Option> actions, ArrayList<City> cities, PlayerCard card, int cardIndex) {
+        var cardCity = cities.get(card.getCity());
+        var cardCityName = cardCity.getName();
+        var cardCityColour = cardCity.getColour();
+
+        for (var city: cities) {
+            var option = new Option("Dispose [" + card.getCity() + ", " + cardCityName + ", " + cardCityColour + "] to teleport to " + city.getName());
+            option.disposeCard = cardIndex;
+            option.endCity = city.getId();
+            actions.add(option);
+        }
+    }
+
+    public static ArrayList<Integer> getDiseaseCubes(int[][][] boardState, int city) {
+        var cubes = new ArrayList<Integer>();
+        var disease = boardState[city][Game.BOARD_STATE_DISEASE_CUBE_INDEX];
+
+        for (int cube : disease) {
+            if (cube == -1) continue;
+            cubes.add(cube);
+        }
+
+        return cubes;
+    }
 
 
     public static boolean drawCardsAndInfectCities(int[][][] boardState, ArrayList<PlayerCard> cards, Player player) {

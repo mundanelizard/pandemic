@@ -40,8 +40,24 @@ public class Action {
         }
     }
 
-    public static boolean performAction(Option choice) {
+    public static boolean performAction(ArrayList<Player> players, Player player, Option choice) {
+        System.out.println("---58");
         System.out.println("Performing action " + choice.getName());
+
+        switch (choice.type) {
+            case TransferCard:
+                return handleTransferCard(player, players.get(choice.endPlayer), choice.disposeCard);
+            case Invalid:
+            default:
+                // todo => set exit reason --
+                return false;
+        }
+    }
+
+    private static boolean handleTransferCard(Player player, Player endPlayer, int cardIndex) {
+        var card = player.removeCard(cardIndex);
+        endPlayer.addCard(card);
+        System.out.println("Successfully transferred card [" + card.getCity() + ", " +  card.getType() + "] to " + endPlayer.getName());
         return true;
     }
 

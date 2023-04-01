@@ -151,6 +151,7 @@ public class Game {
             case QuitGame -> handleQuitGame();
             default -> throw new Exception("Invalid choice");
         }
+
     }
 
     private void handleQuitGame() {
@@ -171,12 +172,13 @@ public class Game {
 
     private void handlePerformAction() {
         var player = players.get(turn);
+        increaseTurn();
 
         // travels all the possible state for the current game
         for (int i = 0; i < 4 && running; i++) {
             var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, players, player);
             var choice = IO.getPlayerActionChoice(options, player, i + 1);
-            running = Action.performAction(choice);
+            running = Action.performAction(players, player, choice);
         }
 
         if (!running) {
@@ -184,5 +186,9 @@ public class Game {
         }
 
 //        running = Action.drawCardsAndInfectCities(boardState, playerCards, player);
+    }
+
+    void increaseTurn() {
+        turn = (turn + 1) % players.size();
     }
 }

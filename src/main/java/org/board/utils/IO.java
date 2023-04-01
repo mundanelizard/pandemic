@@ -25,7 +25,7 @@ public class IO {
 
     public static void displayPlayerChoice(Player player) {
         System.out.println("--");
-        System.out.println("Hello " + player.getName() + " it's your turn ");
+        System.out.println("Hello " + player.getName() + "! It's your turn.");
         System.out.println("Here are your choices: ");
 
         for (var choice : Choice.values()) {

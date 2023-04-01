@@ -7,21 +7,24 @@ import org.board.utils.Utils;
 
 import java.util.ArrayList;
 
+enum Type {
+    Invalid,
+    DriveOrFerry,
+    DirectFlight,
+    CharterFlight,
+
+    // todo => implement shuttle flight
+    ShuttleFlight,
+    BuildResearchStation,
+    TreatDiseaseRemoveOneCube,
+    TreatDiseaseRemoveAll,
+    EradicateDisease,
+    DiscoverACure,
+    TransferCard,
+}
+
 
 public class Action {
-    enum Type {
-        Invalid,
-        DriveOrFerry,
-        DirectFlight,
-        CharterFlight,
-        ShuttleFlight,
-        BuildResearchStation,
-        TreatDiseaseRemoveOneCube,
-        TreatDiseaseRemoveAll,
-        EradicateDisease,
-        DiscoverACure,
-        TransferCard,
-    }
 
     public static class Option {
         int disposeCard = -1;
@@ -40,18 +43,54 @@ public class Action {
         }
     }
 
-    public static boolean performAction(ArrayList<Player> players, Player player, Option choice) {
+    public static boolean performAction(int[][][] boardState, ArrayList<Player> players, Player player, Option choice) {
         System.out.println("---58");
         System.out.println("Performing action " + choice.getName());
 
         switch (choice.type) {
             case TransferCard:
                 return handleTransferCard(player, players.get(choice.endPlayer), choice.disposeCard);
+            case DriveOrFerry:
+                return handleDriveOrFerry(boardState, player, choice.endCity);
+            case DirectFlight:
+                return handleDirectFlight(boardState, player, choice.disposeCard, choice.endCity);
+            case CharterFlight:
+                return handleCharterFlight(boardState, player, choice.disposeCard, choice.endCity);
+            case BuildResearchStation:
+                return handleBuildAResearchStation(boardState, player, choice.suit);
             case Invalid:
             default:
                 // todo => set exit reason --
                 return false;
         }
+    }
+
+    private static boolean handleCharterFlight(int[][][] boardState, Player player, int cardIndex, int endCity) {
+        var card = player.removeCard(cardIndex);
+
+        if (card.getCity() != player.getCity()) {
+            return false;
+        }
+
+        placePawn(boardState, player, endCity);
+        return true;
+    }
+
+    private static boolean handleDirectFlight(int[][][] boardState, Player player, int cardIndex, int endCity) {
+        var card = player.removeCard(cardIndex);
+
+        if (card.getCity() != endCity) {
+            return false;
+        }
+
+        placePawn(boardState, player, endCity);
+
+        return true;
+    }
+
+    private static boolean handleDriveOrFerry(int[][][] boardState, Player player, int city) {
+        placePawn(boardState, player, city);
+        return false;
     }
 
     private static boolean handleTransferCard(Player player, Player endPlayer, int cardIndex) {
@@ -186,6 +225,7 @@ public class Action {
             var option = new Option("Dispose [" + card.getCity() + ", " + cardCityName + ", " + cardCityColour + "] to teleport to " + city.getName());
             option.disposeCard = cardIndex;
             option.endCity = city.getId();
+            option.type = Type.CharterFlight;
             actions.add(option);
         }
     }

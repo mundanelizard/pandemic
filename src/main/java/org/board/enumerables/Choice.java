@@ -7,10 +7,6 @@ public enum Choice {
     ViewBoardState,
     QuitGame;
 
-    static public Choice getChoice(String role) {
-        return Choice.valueOf(String.join("", role.split("\\s")));
-    }
-
     public String toString() {
         StringBuilder builder = new StringBuilder();
 

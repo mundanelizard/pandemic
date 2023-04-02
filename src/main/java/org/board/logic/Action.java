@@ -18,7 +18,6 @@ enum Type {
     BuildResearchStation,
     TreatDiseaseRemoveOneCube,
     TreatDiseaseRemoveAll,
-    EradicateDisease,
     DiscoverACure,
     TransferCard,
 }
@@ -43,7 +42,7 @@ public class Action {
         }
     }
 
-    public static boolean performAction(int[][][] boardState, ArrayList<Player> players, ArrayList<Station> stations, Player player, Option choice) throws Exception {
+    public static boolean performAction(int[][][] boardState, ArrayList<Player> players, ArrayList<Station> stations, ArrayList<Cube> cubes, Player player, Option choice) throws Exception {
         System.out.println("---58");
         System.out.println("Performing action " + choice.getName());
 
@@ -58,11 +57,49 @@ public class Action {
                 return handleCharterFlight(boardState, player, choice.disposeCard, choice.endCity);
             case BuildResearchStation:
                 return handleBuildAResearchStation(boardState, player, stations, choice.suit);
+            case TreatDiseaseRemoveOneCube:
+                return handleTreatDiseaseRemoveOneCube(boardState, player, cubes, choice.suit);
+            case TreatDiseaseRemoveAll:
+                return handleTreatDiseaseRemoveAll(boardState, player, cubes, choice.suit);
+            case DiscoverACure:
+                return handleDiscoverACure();
             case Invalid:
             default:
                 // todo => set exit reason --
                 return false;
         }
+    }
+
+    private static boolean handleTreatDiseaseRemoveOneCube(int[][][] boardState, Player player, ArrayList<Cube> cubes, int suit) throws Exception {
+        var cubesOnBoard = Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
+
+        for (var cube : cubesOnBoard) {
+            if (cube.getColour().ordinal() != suit) continue;
+
+            removeCube(boardState, cube, player.getCity());
+            return true;
+        }
+
+        resolveEradication();
+
+        return false;
+    }
+
+    private static boolean handleTreatDiseaseRemoveAll(int[][][] boardState, Player player, ArrayList<Cube> cubes, int suit) throws Exception {
+        var cubesOnBoard = Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
+
+        boolean valid = false;
+
+        for (var cube : cubesOnBoard) {
+            if (cube.getColour().ordinal() != suit) continue;
+
+            valid = true;
+            removeCube(boardState, cube, player.getCity());
+        }
+
+        resolveEradication();
+
+        return valid;
     }
 
     private static boolean handleBuildAResearchStation(int[][][] boardState, Player player, ArrayList<Station> stations, int suit) throws Exception {
@@ -122,27 +159,34 @@ public class Action {
     }
 
 
-    public static ArrayList<Option> getAllPossibleActions(int[][][] boardState, int[] cureIndicatorState, ArrayList<City> cities, ArrayList<Player> players, Player player) {
+    public static ArrayList<Option> getAllPossibleActions(int[][][] boardState, int[] cureIndicatorState, ArrayList<City> cities, ArrayList<Cube> cubes, ArrayList<Player> players, Player player) {
         var actions = new ArrayList<Option>();
         var cards = player.getHand();
         var currentCity = cities.get(player.getCity());
         var neighbours = currentCity.getNeighbours();
 
-        var cubes = getDiseaseCubes(boardState, player.getCity());
+        var cubesOnBoard = Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
+        var insertedCubeSuits = new boolean[24 * 4];
 
-        if (cubes.size() > 0) {
+        for (var cube : cubesOnBoard) {
+            var colour = cube.getColour().ordinal();
+            if (insertedCubeSuits[colour]) continue;
+
+            insertedCubeSuits[colour] = true;
+            var curred = cureIndicatorState[currentCity.getColour().ordinal()];
+
             // you can remove a disease cube from the board or all if it has been cured.
             // if it is the last cube of a curred disease it is eradicated
-            var curred = cureIndicatorState[currentCity.getColour().ordinal()];
 
             Option option;
             if (curred == 1) {
-                option = new Option("Cure disease (remove all cubes because it has been cured)");
+                option = new Option("Cure disease (remove all cubes because it has been cured) [" + cube.getColour() + "]");
                 option.type = Type.TreatDiseaseRemoveAll;
             } else {
-                option = new Option("Cure disease (remove one from cube)");
+                option = new Option("Cure disease (remove one from cube) [" + cube.getColour() + "]");
                 option.type = Type.TreatDiseaseRemoveOneCube;
             }
+            option.suit = colour;
             actions.add(option);
         }
 
@@ -249,19 +293,6 @@ public class Action {
         }
     }
 
-    public static ArrayList<Integer> getDiseaseCubes(int[][][] boardState, int city) {
-        var cubes = new ArrayList<Integer>();
-        var disease = boardState[city][Game.BOARD_STATE_DISEASE_CUBE_INDEX];
-
-        for (int cube : disease) {
-            if (cube == -1) continue;
-            cubes.add(cube);
-        }
-
-        return cubes;
-    }
-
-
     public static void dealPlayersCardsToPlayer(ArrayList<Player> players, ArrayList<PlayerCard> playerCards, Index playerCardIndex) {
         for (var player : players) {
             var dealCount = 2;
@@ -299,11 +330,20 @@ public class Action {
                 return false;
             }
 
-            cube.setCity(city.getId());
-            Utils.insert(boardState, city.getId(), Game.BOARD_STATE_DISEASE_CUBE_INDEX, cube.getId());
+            placeCube(boardState, cube, city.getId());
         }
 
         return true;
+    }
+
+    public static void removeCube(int[][][] boardState, Cube cube, int cityId) throws Exception {
+        cube.setCity(-1);
+        Utils.remove(boardState, cityId, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cube.getId());
+    }
+
+    public static void placeCube(int[][][] boardState, Cube cube, int cityId) throws Exception {
+        cube.setCity(cityId);
+        Utils.insert(boardState, cityId, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cube.getId());
     }
 
     public static void placePawn(int[][][] boardState, Player player, int city) {
@@ -332,5 +372,4 @@ public class Action {
         infectionCardIndex.increment();
         return infectionCard;
     }
-
 }

@@ -11,9 +11,9 @@ import java.util.Scanner;
 
 public class Game {
 
-    static final int BOARD_STATE_DISEASE_CUBE_INDEX = 1;
-    static final int BOARD_STATE_PAWN_CUBE_INDEX = 2;
-    static final int BOARD_STATE_STATION_CUBE_INDEX = 0;
+    public static final int BOARD_STATE_DISEASE_CUBE_INDEX = 1;
+    public static final int BOARD_STATE_PAWN_CUBE_INDEX = 2;
+    public static final int BOARD_STATE_STATION_CUBE_INDEX = 0;
     /**
      * Coding
      * x - is the city
@@ -176,9 +176,9 @@ public class Game {
 
         // travels all the possible state for the current game
         for (int i = 0; i < 4 && running; i++) {
-            var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, players, player);
+            var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, cubes, players, player);
             var choice = IO.getPlayerActionChoice(options, player, i + 1);
-            running = Action.performAction(boardState, players, stations, player, choice);
+            running = Action.performAction(boardState, players, stations, cubes, player, choice);
         }
 
         if (!running) {

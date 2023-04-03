@@ -19,7 +19,11 @@ public class Game {
             handleGamePlay();
         }
 
-        System.out.println(state.getStatus());
+        if (state.isFailed()) {
+            System.out.println("Game Over: " + state.getStatus());
+        } else {
+            System.out.println("Congratulations you won!");
+        }
     }
 
     private void handleGamePlay() throws Exception {

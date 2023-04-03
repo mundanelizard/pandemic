@@ -57,6 +57,7 @@ public class State {
     private ArrayList<Station> stations = new ArrayList<>();
 
     private boolean running = true;
+    private boolean failed = false;
     private String status = "";
 
     State() throws Exception {
@@ -144,6 +145,16 @@ public class State {
         return status;
     }
 
+    private void setGameOver(String status) {
+        this.status = status;
+        this.running = false;
+        this.failed = true;
+    }
+
+    public boolean isFailed() {
+        return failed;
+    }
+
     public void setRunning(boolean running) {
         this.running = running;
     }
@@ -194,8 +205,7 @@ public class State {
             case Invalid:
             default:
                 // todo => set exit reason --
-                status = "Invalid player action choice " + choice.getType();
-                running =  false;
+                setGameOver("Invalid player action choice " + choice.getType());
         }
 
 
@@ -279,7 +289,7 @@ public class State {
 
         if (count != 5){
             running = false;
-            status = "Card count not enough to create research station you have " + count + " cards";
+            setGameOver("Card count not enough to create research station you have " + count + " cards");
         }
 
         placeStation(player.getCity());
@@ -291,7 +301,7 @@ public class State {
 
         if (card.getCity() != player.getCity()) {
             running = false;
-            status = "Can't charter flight to city " + player.getCity() + " with card #" + card.getCity();
+            setGameOver("Can't charter flight to city " + player.getCity() + " with card #" + card.getCity());
             return;
         }
 
@@ -304,7 +314,7 @@ public class State {
 
         if (card.getCity() != endCity) {
             running = false;
-            status = "Can't direct fly with card " + card.getCity() + " to city " + endCity;
+            setGameOver("Can't direct fly with card " + card.getCity() + " to city " + endCity);
             return;
         }
 
@@ -415,7 +425,7 @@ public class State {
 
         if (outbreakMarkerState >= 8) {
             running = false;
-            status = "Exceeded maximum numbers of outbreaks allowed.";
+            setGameOver("Exceeded maximum numbers of outbreaks allowed.");
             return;
         }
 
@@ -448,7 +458,7 @@ public class State {
 
             if (cube == null) {
                running = false;
-               status = "Out of cubes of the colour " + suit;
+                setGameOver("Out of cubes of the colour " + suit);
                return;
             }
 

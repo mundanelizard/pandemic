@@ -1,6 +1,7 @@
 package org.board.entities;
 
 
+import org.board.enumerables.Colour;
 import org.board.enumerables.Role;
 
 import java.util.ArrayList;
@@ -48,6 +49,21 @@ public class Player {
 
     public PlayerCard removeCard(int index) {
         return cards.remove(index);
+    }
+
+    public void removeNCardsOfSuit(Colour suit, int n) throws Exception {
+        int count = 0;
+        for (var card : cards) {
+            if (count >= n) break;
+            if (card.getColour() != suit) continue;
+
+            count += 1;
+            cards.remove(card);
+        }
+
+        if (count != n) {
+            throw new Exception("Something terribly wrong happened couldn't get suit " + suit + " of count 5 instead got " + count);
+        }
     }
 
     public void setCity(int city) {

@@ -42,8 +42,8 @@ public class Action {
         }
     }
 
-    public static boolean performAction(int[][][] boardState, ArrayList<Player> players, ArrayList<Station> stations, ArrayList<Cube> cubes, Player player, Option choice) throws Exception {
-        System.out.println("---58");
+    public static boolean performAction(int[][][] boardState, int[] cureIndicatorState, ArrayList<Player> players, ArrayList<Station> stations, ArrayList<Cube> cubes, Player player, Option choice) throws Exception {
+        System.out.println("---");
         System.out.println("Performing action " + choice.getName());
 
         switch (choice.type) {
@@ -58,11 +58,13 @@ public class Action {
             case BuildResearchStation:
                 return handleBuildAResearchStation(boardState, player, stations, choice.suit);
             case TreatDiseaseRemoveOneCube:
-                return handleTreatDiseaseRemoveOneCube(boardState, player, cubes, choice.suit);
+                return handleTreatDiseaseRemoveOneCube(boardState, cureIndicatorState, player, cubes, choice.suit);
             case TreatDiseaseRemoveAll:
-                return handleTreatDiseaseRemoveAll(boardState, player, cubes, choice.suit);
+                return handleTreatDiseaseRemoveAll(boardState, cureIndicatorState, player, cubes, choice.suit);
             case DiscoverACure:
-                return handleDiscoverACure();
+                return handleDiscoverACure(boardState, cureIndicatorState, player, stations, choice.suit);
+            case ShuttleFlight:
+                return handleShuttleFlight(boardState, player, choice.endCity);
             case Invalid:
             default:
                 // todo => set exit reason --
@@ -70,7 +72,19 @@ public class Action {
         }
     }
 
-    private static boolean handleTreatDiseaseRemoveOneCube(int[][][] boardState, Player player, ArrayList<Cube> cubes, int suit) throws Exception {
+    private static boolean handleShuttleFlight(int[][][] boardState, Player player, int endCity) {
+        placePawn(boardState, player, endCity);
+        return true;
+    }
+
+    private static boolean handleDiscoverACure(int[][][] boardState, int[] cureIndicatorState, Player player, ArrayList<Station> stations, int suit) throws Exception {
+        player.removeNCardsOfSuit(Colour.values()[suit], 5);
+        placeStation(boardState, stations, player.getCity());
+        cureIndicatorState[suit] = 1;
+        return true;
+    }
+
+    private static boolean handleTreatDiseaseRemoveOneCube(int[][][] boardState, int[] cureIndicatorState, Player player, ArrayList<Cube> cubes, int suit) throws Exception {
         var cubesOnBoard = Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
 
         for (var cube : cubesOnBoard) {
@@ -80,12 +94,24 @@ public class Action {
             return true;
         }
 
-        resolveEradication();
+        resolveEradication(boardState, cureIndicatorState, cubes, suit);
 
         return false;
     }
 
-    private static boolean handleTreatDiseaseRemoveAll(int[][][] boardState, Player player, ArrayList<Cube> cubes, int suit) throws Exception {
+    private static void resolveEradication(int[][][] boardState, int[] cureIndicatorState, ArrayList<Cube> cubes, int suit) {
+        int count = 0;
+        for (int i = 0; i < boardState.length; i++) {
+            count += Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, i).size();
+        }
+
+        if (count != 0) return;
+
+        // mark the disease as eradicated.
+        cureIndicatorState[suit] = 2;
+    }
+
+    private static boolean handleTreatDiseaseRemoveAll(int[][][] boardState, int[] cureIndicatorState, Player player, ArrayList<Cube> cubes, int suit) throws Exception {
         var cubesOnBoard = Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
 
         boolean valid = false;
@@ -97,7 +123,7 @@ public class Action {
             removeCube(boardState, cube, player.getCity());
         }
 
-        resolveEradication();
+        resolveEradication(boardState, cureIndicatorState, cubes, suit);
 
         return valid;
     }
@@ -159,13 +185,59 @@ public class Action {
     }
 
 
-    public static ArrayList<Option> getAllPossibleActions(int[][][] boardState, int[] cureIndicatorState, ArrayList<City> cities, ArrayList<Cube> cubes, ArrayList<Player> players, Player player) {
+    public static ArrayList<Option> getAllPossibleActions(int[][][] boardState, int[] cureIndicatorState, ArrayList<City> cities, ArrayList<Cube> cubes, ArrayList<Station> stations, ArrayList<Player> players, Player player) {
         var actions = new ArrayList<Option>();
         var cards = player.getHand();
         var currentCity = cities.get(player.getCity());
         var neighbours = currentCity.getNeighbours();
 
-        var cubesOnBoard = Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
+        loadTreatAndEradicateDiseaseOptions(boardState, actions, cubes, cureIndicatorState, currentCity);
+
+        loadFerryOptions(actions, cities, neighbours);
+
+        loadBuildAResearchStationAndDirectFlightOptions(actions, cards, cities, players, player);
+
+        var  isStationInCity = Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_STATION_CUBE_INDEX, stations, currentCity.getId()).size() > 0;
+
+        if (!isStationInCity) {
+            return actions;
+        }
+
+        // only load this when there is a research station in the city.
+        loadDiscoverCureOptions(actions, cards, cureIndicatorState);
+
+        loadShuttleFlightOptions(actions, stations, cities, currentCity.getId());
+
+        return actions;
+    }
+
+    private static void loadShuttleFlightOptions(ArrayList<Option> actions, ArrayList<Station> stations, ArrayList<City> cities, int id) {
+        for (var station : stations) {
+            if (station.getCity() == id || station.getCity() == -1) continue;
+            var option = new Option("Take a shuttle flight to " + cities.get(station.getCity()).getName() + " research station");
+            option.endCity = station.getCity();
+            option.type = Type.ShuttleFlight;
+            actions.add(option);
+        }
+    }
+
+    private static void loadDiscoverCureOptions(ArrayList<Option> actions, ArrayList<PlayerCard> cards, int[] cureIndicatorState) {
+        // check if you can discover a cure if the players i greater than 20
+        var cures = getDiseaseCures(cards);
+
+        for (var cure : cures) {
+            // don't display the disease if it has been cured
+            if (cureIndicatorState[cure] == 1) continue;
+
+            var option = new Option("Cure disease of colour " + Colour.values()[cure]);
+            option.suit = cure;
+            option.type = Type.DiscoverACure;
+            actions.add(option);
+        }
+    }
+
+    private static void loadTreatAndEradicateDiseaseOptions(int[][][] boardState, ArrayList<Option> actions, ArrayList<Cube> cubes, int[] cureIndicatorState, City city) {
+        var cubesOnBoard = Utils.getItemsOnBoard(boardState, Game.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, city.getId());
         var insertedCubeSuits = new boolean[24 * 4];
 
         for (var cube : cubesOnBoard) {
@@ -173,7 +245,7 @@ public class Action {
             if (insertedCubeSuits[colour]) continue;
 
             insertedCubeSuits[colour] = true;
-            var curred = cureIndicatorState[currentCity.getColour().ordinal()];
+            var curred = cureIndicatorState[city.getColour().ordinal()];
 
             // you can remove a disease cube from the board or all if it has been cured.
             // if it is the last cube of a curred disease it is eradicated
@@ -189,7 +261,9 @@ public class Action {
             option.suit = colour;
             actions.add(option);
         }
+    }
 
+    private static void loadFerryOptions(ArrayList<Option> actions, ArrayList<City> cities, ArrayList<Integer> neighbours) {
         for (var city : neighbours) {
             // you can move via ferry to any city you are connected to
             var name = cities.get(city).getName();
@@ -198,7 +272,9 @@ public class Action {
             option.type = Type.DriveOrFerry;
             actions.add(option);
         }
+    }
 
+    private  static  void loadBuildAResearchStationAndDirectFlightOptions(ArrayList<Option> actions, ArrayList<PlayerCard> cards, ArrayList<City> cities, ArrayList<Player> players, Player player) {
         for (var card : cards) {
             var city = cities.get(card.getCity());
             var cityName = city.getName();
@@ -225,21 +301,6 @@ public class Action {
             // you can transfer card to other players.
             buildOptionsToTransferCardToPlayers(actions, players, cardIndex, player.getPawn());
         }
-
-        // check if you can discover a cure if the players i greater than 20
-        var cures = getDiseaseCures(cards);
-
-        for (var cure : cures) {
-            // don't display the disease if it has been cured
-            if (cureIndicatorState[cure] == 1) continue;
-
-            var option = new Option("Cure disease of colour " + Colour.values()[cure]);
-            option.suit = cure;
-            option.type = Type.DiscoverACure;
-            actions.add(option);
-        }
-
-        return actions;
     }
 
     private static void buildOptionsToTransferCardToPlayers(ArrayList<Option> actions, ArrayList<Player> players, int cardIndex, int pawn) {

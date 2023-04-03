@@ -23,6 +23,11 @@ public class Game {
      */
     private int[][][] boardState;
     private int outbreakMarkerState = 0;
+    /**
+     * 0 - inactive
+     * 1 - cure found
+     * 2 - eradicated
+     */
     private int[] cureIndicatorState = new int[4];
     /**
      * Infection Deck 0 - 7;
@@ -48,7 +53,6 @@ public class Game {
 
     ArrayList<City> cities = new ArrayList<>();
     ArrayList<Cube> cubes = new ArrayList<>();
-
     ArrayList<Station> stations = new ArrayList<>();
 
 
@@ -176,9 +180,9 @@ public class Game {
 
         // travels all the possible state for the current game
         for (int i = 0; i < 4 && running; i++) {
-            var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, cubes, players, player);
+            var options = Action.getAllPossibleActions(boardState, cureIndicatorState, cities, cubes, stations, players, player);
             var choice = IO.getPlayerActionChoice(options, player, i + 1);
-            running = Action.performAction(boardState, players, stations, cubes, player, choice);
+            running = Action.performAction(boardState, cureIndicatorState, players, stations, cubes, player, choice);
         }
 
         if (!running) {

@@ -37,6 +37,10 @@ public class PlayerCard {
     }
 
     public static ArrayList<PlayerCard> getCards() {
+        return getCards(cards);
+    }
+
+    public static ArrayList<PlayerCard> getCards(ArrayList<PlayerCard> cards) {
         var newCards = new ArrayList<PlayerCard>();
 
         for (var card : cards) {

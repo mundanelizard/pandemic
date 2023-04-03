@@ -59,4 +59,20 @@ public class Utils {
         return itemsOnBoard;
     }
 
+    public static int[][][] copy3dArray(int[][][] array) {
+        int[][][] newArray = new int[array.length][][];
+
+        for (int i = 0; i < array.length; i++) {
+            newArray[i] = new int[array[i].length][];
+            for (int j = 0; j < array[i].length; j++) {
+                newArray[i][j] = new int[array[i][j].length];
+                for (int k = 0; k < array[i][j].length; k++) {
+                    newArray[i][j][k] = newArray[i][j][k];
+                }
+            }
+        }
+
+        return newArray;
+    }
+
 }

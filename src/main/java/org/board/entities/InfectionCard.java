@@ -11,6 +11,17 @@ public class InfectionCard {
         this.id = id;
     }
 
+    public static ArrayList<InfectionCard> getCards(ArrayList<InfectionCard> cards) {
+        var newCards = new ArrayList<InfectionCard>();
+
+        for (var card : cards) {
+            var newCard = new InfectionCard(card.getId());
+            newCards.add(newCard);
+        }
+
+        return newCards;
+    }
+
     public int getId() {
         return id;
     }
@@ -23,13 +34,6 @@ public class InfectionCard {
 
 
     public static ArrayList<InfectionCard> getCards() {
-        var newCards = new ArrayList<InfectionCard>();
-
-        for (var card : cards) {
-            var newCard = new InfectionCard(card.getId());
-            newCards.add(newCard);
-        }
-
-        return newCards;
+        return getCards(cards);
     }
 }

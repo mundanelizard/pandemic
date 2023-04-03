@@ -53,6 +53,10 @@ public class Cube {
     }
 
     public static ArrayList<Cube> getCubes() throws Exception {
+        return getCubes(cubes);
+    }
+
+    public static ArrayList<Cube> getCubes(ArrayList<Cube> cubes) throws Exception {
         var newCubes = new ArrayList<Cube>();
 
         for (var cube : cubes) {

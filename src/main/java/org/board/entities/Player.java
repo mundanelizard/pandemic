@@ -82,6 +82,18 @@ public class Player {
         return players;
     }
 
+    public static ArrayList<Player> getPlayers(ArrayList<Player> players) {
+        var list = new ArrayList<Player>();
+
+        for(var player : players) {
+            var newPlayer = new Player(player.name, player.pawn, player.role);
+            newPlayer.city = player.city;
+            players.add(newPlayer);
+        }
+
+        return list;
+    }
+
     public static void addPlayer(String name, int pawn, Role role) throws Exception {
         if (players == null) {
             throw new Exception("Players hasn't been instantiated");

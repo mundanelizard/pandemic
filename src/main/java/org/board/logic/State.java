@@ -60,8 +60,41 @@ public class State {
     private boolean failed = false;
     private String status = "";
 
-    State() throws Exception {
+    State(boolean init) throws Exception {
+        if (!init) return;
         initialise();
+    }
+
+    State() throws Exception {
+        this(true);
+    }
+
+    public State deepClone() throws Exception {
+        var state = new State();
+
+        state.boardState = Utils.copy3dArray(boardState);
+        state.outbreakMarkerState = outbreakMarkerState;
+        state.cureIndicatorState = cureIndicatorState.clone();
+        state.infectionRateMarkerState = infectionRateMarkerState;
+
+        state.playerCards = PlayerCard.getCards(playerCards);
+        state.playerCardIndex = playerCardIndex;
+
+        state.infectionCards = InfectionCard.getCards(infectionCards);
+        state.infectionCardIndex = infectionCardIndex;
+
+        state.players = Player.getPlayers(players);
+        state.turn = turn;
+
+        state.cities = cities;
+        state.cubes = Cube.getCubes(cubes);
+        state.stations = Station.getStations();
+
+        state.running = running;
+        state.failed = failed;
+        state.status = status;
+
+        return state;
     }
 
     private void initialise() throws Exception {
@@ -208,6 +241,7 @@ public class State {
                 setGameOver("Invalid player action choice " + choice.getType());
         }
 
+        // todo => check if they won.
 
         if (!running) {
             return;

@@ -49,6 +49,10 @@ public class Station {
     }
 
     public static ArrayList<Station> getStations() throws Exception {
+        return getStations(stations);
+    }
+
+    public static ArrayList<Station> getStations(ArrayList<Station> stations) throws Exception {
         var newStations = new ArrayList<Station>();
 
         for (var station : stations) {

@@ -174,7 +174,7 @@ public class Action {
 
     private static boolean handleDriveOrFerry(int[][][] boardState, Player player, int city) {
         placePawn(boardState, player, city);
-        return false;
+        return true;
     }
 
     private static boolean handleTransferCard(Player player, Player endPlayer, int cardIndex) {

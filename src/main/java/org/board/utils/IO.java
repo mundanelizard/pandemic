@@ -2,7 +2,7 @@ package org.board.utils;
 
 import org.board.entities.Player;
 import org.board.enumerables.Choice;
-import org.board.logic.Action;
+import org.board.entities.Option;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -35,7 +35,7 @@ public class IO {
         System.out.print("> ");
     }
 
-    public static Action.Option getPlayerActionChoice(ArrayList<Action.Option> options, Player player, int action) {
+    public static Option getPlayerActionChoice(ArrayList<Option> options, Player player, int action) {
         int choice;
 
         do {
@@ -46,7 +46,7 @@ public class IO {
         return options.get(choice);
     }
 
-    private static void displayPlayerOptions(ArrayList<Action.Option> options, Player player, int action) {
+    private static void displayPlayerOptions(ArrayList<Option> options, Player player, int action) {
         System.out.println("--");
         System.out.println("Hello " + player.getName() + "!");
         System.out.println("Here are the possible moves for the current action (" + action + "/4)");

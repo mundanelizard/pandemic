@@ -34,22 +34,26 @@ public class Utils {
         }
     }
 
-    public static<T> void shuffle(ArrayList<T> items, int start) {
-        for (int currentIndex = start; currentIndex < items.size(); currentIndex++) {
-            int newIndex = random.nextInt(items.size());
+    public static<T> void shuffle(ArrayList<T> items) {
+        shuffle(items, items.size());
+    }
+
+    public static<T> void shuffle(ArrayList<T> items, int end) {
+        for (int currentIndex = 0; currentIndex < end; currentIndex++) {
+            int newIndex = random.nextInt(end);
             var temp = items.get(currentIndex);
             items.set(currentIndex, items.get(newIndex));
             items.set(newIndex, temp);
         }
     }
 
-    public static<T> ArrayList<T> getItemsOnBoard(int[][][] boardState, int typeId, ArrayList<T> cubes, int city) {
+    public static<T> ArrayList<T> getItemsOnBoard(int[][][] boardState, int typeId, ArrayList<T> arr, int city) {
         var itemsOnBoard = new ArrayList<T>();
-        var disease = boardState[city][typeId];
+        var items = boardState[city][typeId];
 
-        for (int cube : disease) {
-            if (cube == -1) continue;
-            itemsOnBoard.add(cubes.get(cube));
+        for (int item : items) {
+            if (item == -1) continue;
+            itemsOnBoard.add(arr.get(item));
         }
 
         return itemsOnBoard;

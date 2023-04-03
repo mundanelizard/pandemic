@@ -102,7 +102,8 @@ public class Loader {
         }
 
         for (int i = 0; i < 6; i++) {
-            PlayerCard.addCard(-1, Card.Epidemic, Colour.Invalid);
+            // todo => remove event card
+//            PlayerCard.addCard(-1, Card.Epidemic, Colour.Invalid);
         }
 
         return PlayerCard.getCards();

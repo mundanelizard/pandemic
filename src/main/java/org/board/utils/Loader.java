@@ -64,7 +64,9 @@ public class Loader {
 
     static public ArrayList<Cube> loadCubes() throws Exception {
         for (var colour : Colour.values()) {
-            var padding = colour.ordinal() * 24;
+            if (colour == Colour.Invalid) continue;
+
+            var padding = (colour.ordinal() - 1) * 24;
             for (int i = 0; i < 24; i++) {
                 var id = padding + i;
                 Cube.addCube(id, colour);
@@ -77,9 +79,11 @@ public class Loader {
     static public int[][][] loadEmptyBoardState() {
         int[][][] boardState = new int[48][3][24];
 
-        for (int[][] ints : boardState) {
-            for (int[] anInt : ints) {
-                Arrays.fill(anInt, -1);
+        for (int i = 0; i < boardState.length; i++) {
+            for (int j = 0; j < boardState[i].length; j++) {
+                for (int k = 0; k < boardState[i][j].length; k++) {
+                    boardState[i][j][k] = -1;
+                }
             }
         }
 

@@ -1,5 +1,8 @@
 package org.board.enumerables;
 
+/**
+ * All the colour in the application.
+ */
 public enum Colour {
     Invalid,
     Red,
@@ -7,10 +10,19 @@ public enum Colour {
     Yellow,
     Black;
 
-    static public Colour getColour(String role) {
-        return Colour.valueOf(String.join("", role.split("\\s")));
+    /**
+     * Converts a string to colour.
+     * @param colour the string version of the colour
+     * @return colour
+     */
+    static public Colour getColour(String colour) {
+        return Colour.valueOf(String.join("", colour.split("\\s")));
     }
 
+    /**
+     * Converts to human-readable string
+     * @return a human-readable string.
+     */
     public String toString() {
         StringBuilder builder = new StringBuilder();
 

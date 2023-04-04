@@ -1,5 +1,8 @@
 package org.board.enumerables;
 
+/**
+ * Represents choices of card in first round
+ */
 public enum Choice {
     PerformAction,
     ViewCards,
@@ -7,6 +10,10 @@ public enum Choice {
     ViewBoardState,
     QuitGame;
 
+    /**
+     * Converts to human-readable string
+     * @return a human-readable string.
+     */
     public String toString() {
         StringBuilder builder = new StringBuilder();
 

@@ -19,7 +19,7 @@ public class Cube {
     }
 
     public void setCity(int city) throws Exception {
-        if (!empty() && city != -1) {
+        if (!empty()) {
             throw new Exception("Cube " + id + " is already placed on the board.");
         }
 
@@ -76,5 +76,10 @@ public class Cube {
         }
 
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "Cube " + id + " city " + city;
     }
 }

@@ -1,11 +1,11 @@
 package org.board.entities;
 
-
 import org.board.enumerables.Colour;
-
 import java.util.ArrayList;
 
-
+/**
+ * Represents a city in the application.
+ */
 public class City {
     final int id;
     final String name;
@@ -79,11 +79,11 @@ public class City {
     }
 
     public static void connect(String firstCityName, String secondCityName) throws Exception {
-        connect(getCityByName(firstCityName), getCityByName(secondCityName));
+        connect(getCityByName(cities, firstCityName), getCityByName(cities, secondCityName));
     }
 
 
-    public static City getCityByName(String name) {
+    public static City getCityByName(ArrayList<City> cities, String name) {
          for (var city : cities) {
              if(city.name.equals(name))
                  return city;

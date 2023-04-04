@@ -61,7 +61,7 @@ public class Agent {
         }
 
         // sort ranking based on rating and epidemics
-        ranking.sort(Comparator.comparingDouble(o -> -o.rating()));
+        ranking.sort(Comparator.comparingDouble(o -> -o.rating() + (-o.cards() / 2)));
 
         return ranking;
     }

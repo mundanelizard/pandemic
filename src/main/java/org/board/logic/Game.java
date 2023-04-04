@@ -2,6 +2,8 @@ package org.board.logic;
 
 import org.board.utils.*;
 
+import java.util.Arrays;
+
 
 public class Game {
     State state = new State();
@@ -13,6 +15,7 @@ public class Game {
 
     public void start() throws Exception {
         var players = state.getPlayers();
+
         agent.setPlayer(players.get(players.size() - 1));
 
         while(state.isRunning()) {
@@ -29,35 +32,37 @@ public class Game {
     private void handleGamePlay() throws Exception {
         var player = state.getCurrentPlayer();
 
-        if (player.getPawn() == agent.getPlayer().getPawn()) {
-            agent.play(state);
-            return;
-        }
+        agent.play(state);
 
-        switch (IO.getPlayerChoice(player)) {
-            case PerformAction -> handlePerformAction();
-            case ViewCards -> handleViewCards();
-            case ConsultAgent -> handleConsultAgent();
-            case ViewBoardState -> handleViewBoardState();
-            case QuitGame -> handleQuitGame();
-            default -> throw new Exception("Invalid choice");
-        }
+//        if (player.getPawn() == agent.getPlayer().getPawn()) {
+//            agent.play(state);
+//            return;
+//        }
+//
+//        switch (IO.getPlayerChoice(player)) {
+//            case PerformAction -> handlePerformAction();
+//            case ViewCards -> handleViewCards();
+//            case ConsultAgent -> handleConsultAgent();
+//            case ViewBoardState -> handleViewBoardState();
+//            case QuitGame -> handleQuitGame();
+//            default -> throw new Exception("Invalid choice");
+//        }
     }
 
     private void handleQuitGame() {
-        state.setRunning(false);
+        System.exit(1);
     }
 
     private void handleViewBoardState() {
-        
+//        state.printBoard();
     }
 
     private void handleConsultAgent() {
-
+//        agent.consult(state, state.getCurrentPlayer());
     }
 
     private void handleViewCards() {
-
+//        state.printAllPlayersCards();
     }
 
     private void handlePerformAction() throws Exception {

@@ -1,5 +1,8 @@
 package org.board.enumerables;
 
+/**
+ * Represents roles in the game
+ */
 public enum Role {
     ContingencyPlanner,
     Dispatcher,
@@ -9,6 +12,10 @@ public enum Role {
     Researcher,
     Scientist;
 
+    /**
+     * Converts to human-readable string
+     * @return a human-readable string.
+     */
     public String toString() {
         StringBuilder builder = new StringBuilder();
 
@@ -23,6 +30,11 @@ public enum Role {
         return builder.toString();
     }
 
+    /**
+     * Converts role to colour
+     * @param role the user role
+     * @return the role.
+     */
     static public Role getRole(String role) {
         return Role.valueOf(String.join("", role.split("\\s")));
     }

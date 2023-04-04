@@ -7,24 +7,10 @@ import org.board.enumerables.OptionType;
 import org.board.utils.Loader;
 import org.board.utils.Utils;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
 public class State {
-    /* Indexes for board state */
-    static final int BOARD_STATE_DISEASE_CUBE_INDEX = 1;
-    static final int BOARD_STATE_PAWN_CUBE_INDEX = 2;
-    static final int BOARD_STATE_STATION_CUBE_INDEX = 0;
-
-    /**
-     * Stores all items on the board. It represents the board state.
-     * x - is the city
-     * state[x][0] = station
-     * state[x][1] = pawn
-     * state[x][2] = disease cube
-     */
-    private int[][][] boardState;
 
     /* Marker for the outbreak state from 0 to 8. It is greater than 8, the game ends */
     private int outbreakMarkerState = 0;
@@ -98,7 +84,9 @@ public class State {
     State(boolean init) throws Exception {
         // you can choose if you want to initialise state at creation from IO;
         if (!init) return;
+        this.debug = false;
         initialise();
+        this.debug = true;
     }
 
     /**
@@ -119,7 +107,6 @@ public class State {
         cities = Loader.loadCityGraph();
         infectionCards = Loader.loadInfectionCards();
         playerCards = Loader.loadPlayerCards();
-        boardState = Loader.loadEmptyBoardState();
         cubes = Loader.loadCubes();
         stations = Loader.loadStations();
 
@@ -283,7 +270,7 @@ public class State {
         loadBuildAResearchStationAndDirectFlightOptions(actions);
 
         // checking if there is a research station in the current player location.
-        var  isStationInCity = Utils.getItemsOnBoard(boardState, State.BOARD_STATE_STATION_CUBE_INDEX, stations, getCurrentPlayerCity().getId()).size() > 0;
+        var isStationInCity = getStationsCountInCity(cities.get(getCurrentPlayerCity().getId())) > 0;
 
         if (!isStationInCity) {
             return actions;
@@ -296,6 +283,7 @@ public class State {
 
         return actions;
     }
+
 
     /**
      * Gets the total count of free cubes on the board.
@@ -454,7 +442,7 @@ public class State {
      */
     private void handleTreatDiseaseRemoveOneCube(Player player, int suit) {
         // getting all the cubes on the board at that city
-        var cubesOnBoard = Utils.getItemsOnBoard(boardState, State.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
+        var cubesOnBoard = getCubesInCity(cities.get(player.getCity()));
 
         for (var cube : cubesOnBoard) {
             // check the colour of the suit
@@ -473,6 +461,24 @@ public class State {
     }
 
     /**
+     * Gets all the cubes in a city.
+     * @param city returns the city name.
+     * @return a list of cubes.
+     */
+    private ArrayList<Cube> getCubesInCity(City city) {
+        var cubesOnBoard = new ArrayList<Cube>();
+
+        for(var cube : cubes) {
+            if(cube.getCity() != city.getId()) continue;
+
+            cubesOnBoard.add(cube);
+        }
+
+        return cubesOnBoard;
+    }
+
+
+    /**
      * Treat disease and remove all from the current city. Only works for cured diseases. It assumes all the conditions
      * are met.
      * @param player the player that wants to remove the disease
@@ -480,7 +486,7 @@ public class State {
      */
     private void handleTreatDiseaseRemoveAll(Player player, int suit) {
         // all the cubes on the board at that city
-        var cubesOnBoard = Utils.getItemsOnBoard(boardState, State.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
+        var cubesOnBoard = getCubesInCity(cities.get(player.getCity()));
 
         for (var cube : cubesOnBoard) {
             if (cube.getColour().ordinal() != suit) continue;
@@ -590,7 +596,8 @@ public class State {
         endPlayer.addCard(card);
 
         if (debug)
-            System.out.println("! Transferred card [" + card.getCity() + ", " +  card.getType() + "] to " + endPlayer.getName());
+            System.out.println("! Transferred card " + card + " to " + endPlayer.getName());
+
     }
 
 
@@ -608,8 +615,8 @@ public class State {
         int count = 0;
 
         // gets the count of all the cubes of tha colour across all cities on the board.
-        for (int i = 0; i < boardState.length; i++) {
-            count += Utils.getItemsOnBoard(boardState, State.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, i).size();
+        for (City city : cities) {
+            count += getCubesInCity(city).size();
         }
 
         // doesn't eradicate disease if it is still on the board.
@@ -705,7 +712,6 @@ public class State {
      * @param cube cube to remove from board.
      */
     public void removeCube(Cube cube) {
-        remove(cube.getCity(), State.BOARD_STATE_DISEASE_CUBE_INDEX, cube.getId());
         cube.remove();
     }
 
@@ -927,7 +933,6 @@ public class State {
      */
     public void placeCube(Cube cube, int cityId) throws Exception {
         cube.setCity(cityId);
-        insert(cityId, State.BOARD_STATE_DISEASE_CUBE_INDEX, cube.getId());
     }
 
     /**
@@ -936,9 +941,7 @@ public class State {
      * @param city the city
      */
     public void placePawn(Player player, int city) {
-        remove(player.getCity(), State.BOARD_STATE_PAWN_CUBE_INDEX, player.getPawn());
         player.setCity(city);
-        insert(city, State.BOARD_STATE_PAWN_CUBE_INDEX, player.getPawn());
     }
 
     /**
@@ -955,7 +958,6 @@ public class State {
         }
 
         station.setCity(city);
-        insert(city, State.BOARD_STATE_STATION_CUBE_INDEX, station.getId());
     }
 
 
@@ -1009,7 +1011,7 @@ public class State {
      */
     private void loadTreatAndEradicateDiseaseOptions(ArrayList<Option> actions) {
         var city = getCurrentPlayerCity();
-        var cubesInCity = Utils.getItemsOnBoard(boardState, State.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, city.getId());
+        var cubesInCity = getCubesInCity(city);
         var insertedCubeSuits = new boolean[6];
 
         for (var cube : cubesInCity) {
@@ -1151,8 +1153,6 @@ public class State {
     public State deepClone() throws Exception {
         var state = new State(false);
 
-        state.boardState = Utils.copy3dArray(boardState);
-
         state.outbreakMarkerState = outbreakMarkerState;
         state.cureIndicatorState = cureIndicatorState.clone();
         state.infectionRateMarkerState = infectionRateMarkerState;
@@ -1180,38 +1180,9 @@ public class State {
         return state;
     }
 
-    /* Board State Manipulation */
-
     /**
-     * Insert item into the board
-     * @param cityId the id of the city
-     * @param typeId the type of the item
-     * @param itemId the id of the item
+     * Print board state.
      */
-    private void insert(int cityId, int typeId, int itemId) {
-        for(int locationStorageIndex = 0; locationStorageIndex < boardState[cityId][typeId].length; locationStorageIndex++) {
-            if(boardState[cityId][typeId][locationStorageIndex] != -1) continue;
-
-            boardState[cityId][typeId][locationStorageIndex] = itemId;
-            return;
-        }
-    }
-
-    /**
-     * Removing item from the board
-     * @param cityId current city
-     * @param typeId item type
-     * @param itemId the index of the item to remove.
-     */
-    private void remove(int cityId, int typeId, int itemId) {
-        for(int i = 0; i < boardState[cityId][typeId].length; i++) {
-            if (boardState[cityId][typeId][i] != itemId) continue;
-
-            boardState[cityId][typeId][i] = -1;
-        }
-    }
-
-
     public void printBoard() {
         var builder = new StringBuilder();
 
@@ -1236,7 +1207,7 @@ public class State {
             if (cubes.trim().length() > 0)
                 builder.append("Cubes ").append(cubes).append(" - ");
 
-            var stations = getStationsInCity(city);
+            var stations = getStationsCountInCity(city);
             builder.append("Stations ").append(stations);
 
             builder.append("\t\t\t\t\t\t");
@@ -1255,7 +1226,12 @@ public class State {
     }
 
 
-    private int getStationsInCity(City city) {
+    /**
+     * Gets count of all the stations in the city
+     * @param city the city to count stations
+     * @return the stations count
+     */
+    private int getStationsCountInCity(City city) {
         var count = 0;
 
         for(var station : stations) {
@@ -1267,6 +1243,11 @@ public class State {
         return count;
     }
 
+    /**
+     * Gets the name of the colours of disease in a city.
+     * @param city returns the city name.
+     * @return colours names.
+     */
     private String getCubesColoursInCity(City city) {
         var builder = new StringBuilder();
 
@@ -1283,6 +1264,11 @@ public class State {
         return builder.toString();
     }
 
+    /**
+     * Builds a string of players names
+     * @param city the city to check for players
+     * @return name of players in the city
+     */
     private String getPlayerNamesInCity(City city) {
         var builder = new StringBuilder();
 
@@ -1299,6 +1285,9 @@ public class State {
         return builder.toString();
     }
 
+    /**
+     * Prints all the cards in the player hand.
+     */
     public void printPlayersHands() {
         System.out.println("\n\n---PLAYER CARDS---\n");
         for (var player : players) {

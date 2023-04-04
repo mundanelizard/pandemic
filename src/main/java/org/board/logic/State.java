@@ -7,6 +7,7 @@ import org.board.enumerables.OptionType;
 import org.board.utils.Loader;
 import org.board.utils.Utils;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -1188,10 +1189,10 @@ public class State {
      * @param itemId the id of the item
      */
     private void insert(int cityId, int typeId, int itemId) {
-        for(int i = 0; i < boardState[cityId][typeId].length; i++) {
-            if(boardState[cityId][typeId][i] != -1) continue;
+        for(int locationStorageIndex = 0; locationStorageIndex < boardState[cityId][typeId].length; locationStorageIndex++) {
+            if(boardState[cityId][typeId][locationStorageIndex] != -1) continue;
 
-            boardState[cityId][typeId][i] = itemId;
+            boardState[cityId][typeId][locationStorageIndex] = itemId;
             return;
         }
     }
@@ -1208,5 +1209,102 @@ public class State {
 
             boardState[cityId][typeId][i] = -1;
         }
+    }
+
+
+    public void printBoard() {
+        var builder = new StringBuilder();
+
+        builder.append("\n\n");
+        builder.append("---CITIES---");
+        for(var cityIndex = 0; cityIndex < cities.size(); cityIndex++) {
+            if (cityIndex % 3 == 0) builder.append("\n");
+            if (cityIndex % 12 == 0) builder.append("\n");
+
+            var city = cities.get(cityIndex);
+
+            builder.append("#").append(city.getId()).append(" ");
+            builder.append(city.getName()).append("(").append(city.getColour()).append(")");
+            builder.append(" - ");
+
+
+            var names = getPlayerNamesInCity(city);
+            if (names.trim().length() > 0)
+                builder.append("Players ").append(names).append(" - ");
+
+            var cubes = getCubesColoursInCity(city);
+            if (cubes.trim().length() > 0)
+                builder.append("Cubes ").append(cubes).append(" - ");
+
+            var stations = getStationsInCity(city);
+            builder.append("Stations ").append(stations);
+
+            builder.append("\t\t\t\t\t\t");
+        }
+
+        System.out.println(builder);
+        System.out.println();
+        System.out.println("---OTHERS---");
+        System.out.println();
+        System.out.println("Outbreak Marker " + outbreakMarkerState + "/ 8");
+        System.out.println("Infection Rate Marker " + infectionRateMarkerState);
+        System.out.println("Cure Indicator State " + Arrays.toString(cureIndicatorState) + " Red, Blue, Yellow, Black");
+        System.out.println("Player Deck " + (playerCardIndex + 1) + "/" + playerCards.size());
+        System.out.println("Infection Cards " + (infectionCardIndex + 1) + "/" + infectionCards.size());
+        System.out.println("\n\n");
+    }
+
+
+    private int getStationsInCity(City city) {
+        var count = 0;
+
+        for(var station : stations) {
+            if(station.getCity() != city.getId()) continue;
+
+            count += 1;
+        }
+
+        return count;
+    }
+
+    private String getCubesColoursInCity(City city) {
+        var builder = new StringBuilder();
+
+        for(var cube : cubes) {
+            if(cube.getCity() != city.getId()) continue;
+
+            if (builder.length() > 1) {
+                builder.append(", ");
+            }
+
+            builder.append(cube.getColour());
+        }
+
+        return builder.toString();
+    }
+
+    private String getPlayerNamesInCity(City city) {
+        var builder = new StringBuilder();
+
+        for(var player : players) {
+            if(player.getCity() != city.getId()) continue;
+
+            if (builder.length() > 1) {
+                builder.append(", ");
+            }
+
+            builder.append(player.getName());
+        }
+
+        return builder.toString();
+    }
+
+    public void printPlayersHands() {
+        System.out.println("\n\n---PLAYER CARDS---\n");
+        for (var player : players) {
+            player.printCards();
+            System.out.println();
+        }
+        System.out.println("\n\n");
     }
 }

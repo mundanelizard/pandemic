@@ -93,6 +93,6 @@ public class PlayerCard {
 
     @Override
     public String toString() {
-        return "[ " + city + ", " + type + ", " + colour + "] ";
+        return "[ #" + city + ", " + type + ", " + colour + "] ";
     }
 }

@@ -17,12 +17,15 @@ public class Game {
     public void start() throws Exception {
         var players = state.getPlayers();
 
+        // assign the last player to the agent
         agent.setPlayer(players.get(players.size() - 1));
 
+        // handles game play while the game state is the active
         while(state.isRunning()) {
             handleGamePlay();
         }
 
+        // check if it was a win of failure that caused the game to end.
         if (state.isFailed()) {
             System.out.println("Game Over: " + state.getStatus());
         } else {
@@ -37,21 +40,19 @@ public class Game {
     private void handleGamePlay() throws Exception {
         var player = state.getCurrentPlayer();
 
-        agent.play(state);
+        if (player.getPawn() == agent.getPlayer().getPawn()) {
+            agent.play(state);
+            return;
+        }
 
-//        if (player.getPawn() == agent.getPlayer().getPawn()) {
-//            agent.play(state);
-//            return;
-//        }
-//
-//        switch (IO.getPlayerChoice(player)) {
-//            case PerformAction -> handlePerformAction();
-//            case ViewCards -> handleViewCards();
-//            case ConsultAgent -> handleConsultAgent();
-//            case ViewBoardState -> handleViewBoardState();
-//            case QuitGame -> handleQuitGame();
-//            default -> throw new Exception("Invalid choice");
-//        }
+        switch (IO.getPlayerChoice(player)) {
+            case PerformAction -> handlePerformAction();
+            case ViewCards -> handleViewCards();
+            case ConsultAgent -> handleConsultAgent();
+            case ViewBoardState -> handleViewBoardState();
+            case QuitGame -> handleQuitGame();
+            default -> throw new Exception("Invalid choice");
+        }
     }
 
     /**
@@ -65,7 +66,7 @@ public class Game {
      * Prints out the board state
      */
     private void handleViewBoardState() {
-//        state.printBoard();
+        state.printBoard();
     }
 
     /**
@@ -79,7 +80,7 @@ public class Game {
      * Handle the view cards logic
      */
     private void handleViewCards() {
-//        state.printAllPlayersCards();
+        state.printPlayersHands();
     }
 
     /**

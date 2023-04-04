@@ -244,4 +244,14 @@ public class Player {
             }
         }
     }
+
+    /**
+     * Prints players cards
+     */
+    public void printCards() {
+        System.out.println("Player " + name + " cards");
+        for (var card : cards) {
+            System.out.println(card);
+        }
+    }
 }

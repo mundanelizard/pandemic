@@ -2,9 +2,6 @@ package org.board.logic;
 
 import org.board.utils.*;
 
-import java.util.Arrays;
-
-
 public class Game {
     State state = new State();
 
@@ -13,6 +10,10 @@ public class Game {
     public Game() throws Exception {}
 
 
+    /**
+     * Starts the game
+     * @throws Exception when the game state errors.
+     */
     public void start() throws Exception {
         var players = state.getPlayers();
 
@@ -29,6 +30,10 @@ public class Game {
         }
     }
 
+    /**
+     * Request players and agent to play game.
+     * @throws Exception when the game state errors
+     */
     private void handleGamePlay() throws Exception {
         var player = state.getCurrentPlayer();
 
@@ -49,24 +54,39 @@ public class Game {
 //        }
     }
 
+    /**
+     * Handles quiting game
+     */
     private void handleQuitGame() {
         System.exit(1);
     }
 
+    /**
+     * Prints out the board state
+     */
     private void handleViewBoardState() {
 //        state.printBoard();
     }
 
+    /**
+     * Handles the consulting agent logic
+     */
     private void handleConsultAgent() {
 //        agent.consult(state, state.getCurrentPlayer());
     }
 
+    /**
+     * Handle the view cards logic
+     */
     private void handleViewCards() {
 //        state.printAllPlayersCards();
     }
 
+    /**
+     * Asks users for action and performs actions.
+     * @throws Exception when the game state errors.
+     */
     private void handlePerformAction() throws Exception {
-        // travels all the possible state for the current game
         for (int i = 1; i <= 4 && state.isRunning(); i++) {
             var options = state.getAllPossibleActions();
             var choice = IO.getPlayerActionChoice(options, state.getCurrentPlayer(), i);

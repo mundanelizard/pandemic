@@ -5,7 +5,7 @@ import java.util.Random;
 
 public class Utils {
     // todo => remove seed when out of testing mode
-    private static final Random random = new Random(1);
+    private static final Random random = new Random();
 
     public static<T> void shuffle(ArrayList<T> items) {
         shuffle(items, items.size());

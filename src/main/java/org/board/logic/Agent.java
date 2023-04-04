@@ -15,6 +15,8 @@ record Outcome(Option option, double epidemics, double rating, double cards) {
 }
 
 public class Agent {
+
+    /* Weights for evaluation function */
     final int CUBES_ON_BOARD_WEIGHT = 10;
     final int CUBES_FREE_CUBES_WEIGHT = 10;
     final int INFECTION_RATE_WEIGHT = 10;
@@ -25,17 +27,29 @@ public class Agent {
     final int RESEARCH_STATION_WEIGHT = 50;
 
 
+    /*  agent name */
     static final public String NAME = "Rupert";
+
+    /* player associated to agent */
     private Player player;
 
     public void setPlayer(Player player) {
         this.player = player;
     }
 
+    /**
+     * Gets the player associated to the agent.
+     * @return a player
+     */
     public Player getPlayer() {
         return player;
     }
 
+    /**
+     * Plays the game by picking the best outcome out of a series of outs.
+     * @param state the state of the game.
+     * @throws Exception whe the game state errors.
+     */
     public void play(State state) throws Exception {
         System.out.println("Agent is performing is actions");
 
@@ -46,6 +60,10 @@ public class Agent {
         }
     }
 
+    /**
+     * Prints outcomes in a user readable manner.
+     * @param outcomes outcomes to print
+     */
     public void printOutcomes(ArrayList<Outcome> outcomes) {
         for(var outcome : outcomes) {
             System.out.println(outcome);
@@ -53,6 +71,12 @@ public class Agent {
         }
     }
 
+    /**
+     * Gets a list of all the outcomes ranked by their points.
+     * @param state the state of the game.
+     * @return a list of outcomes
+     * @throws Exception when the game state encounters an error state.
+     */
     public ArrayList<Outcome> getRankedBestOptions(State state) throws Exception {
         var ranking = new ArrayList<Outcome>();
 
@@ -67,10 +91,24 @@ public class Agent {
         return ranking;
     }
 
+    /**
+     * Traverse the game tree and returns an estimate of the performance of the game tree.
+     * @param state the state of the board.
+     * @return outcome of the action.
+     * @throws Exception when the state fails.
+     */
     public Outcome traverseGameTree(State state, Option option) throws Exception {
         return traverseGameTree(state, option,1);
     }
 
+    /**
+     * Traverse the game tree and returns an estimate of the performance of the game tree.
+     * @param state the state of the board.
+     * @param action the action to perform.
+     * @param count what action count is it.
+     * @return outcome of the action.
+     * @throws Exception when the state fails.
+     */
     public Outcome traverseGameTree(State state, Option action, int count) throws Exception {
         // clone the state
         var newState = state.deepClone();
@@ -108,6 +146,12 @@ public class Agent {
     }
 
 
+    /**
+     * Evaluation function for the board states.
+     * @param beginState the beginning state
+     * @param endState the end state
+     * @return the rating of the action.
+     */
     private int rateState(State beginState, State endState) {
         // higher better - lower worse
 

@@ -10,18 +10,18 @@ import java.util.stream.IntStream;
 record Outcome(Option option, double epidemics, double rating, double cards) {
     @Override
     public String toString() {
-        return "Option 1: " + option.getName() + "\n\t\t rating -> " + rating + " epidemic -> " + epidemics + " cards " + cards;
+        return "Option: " + option.getName() + "\n\t\t rating -> " + rating + " epidemic -> " + epidemics + " cards " + cards;
     }
 }
 
 public class Agent {
-    final int CUBES_ON_BOARD_WEIGHT = -2;
-    final int CUBES_FREE_CUBES_WEIGHT = 2;
-    final int INFECTION_RATE_WEIGHT = -1;
-    final int CURE_WEIGHT = 100;
-    final int EPIDEMICS_WEIGHT = -1;
-    final int OUTBREAK_WEIGHT = -20;
-    final int GAME_OVER_WEIGHT = -1000;
+    final int CUBES_ON_BOARD_WEIGHT = 10;
+    final int CUBES_FREE_CUBES_WEIGHT = 10;
+    final int INFECTION_RATE_WEIGHT = 10;
+    final int CURE_WEIGHT = 80;
+    final int EPIDEMICS_WEIGHT = -10;
+    final int OUTBREAK_WEIGHT = -50;
+    final int GAME_OVER_WEIGHT = -100;
     final int RESEARCH_STATION_WEIGHT = 10;
 
 
@@ -31,6 +31,7 @@ public class Agent {
     public void setPlayer(Player player) {
         this.player = player;
     }
+
     public Player getPlayer() {
         return player;
     }
@@ -61,7 +62,7 @@ public class Agent {
         }
 
         // sort ranking based on rating and epidemics
-        ranking.sort(Comparator.comparingDouble(o -> -o.rating() + (-o.cards() / 2)));
+        ranking.sort(Comparator.comparingDouble(o -> -o.rating()));
 
         return ranking;
     }

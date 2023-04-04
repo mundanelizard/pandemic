@@ -8,17 +8,15 @@ import org.board.logic.Agent;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Random;
 import java.util.Scanner;
 
 public class Loader {
-    static Random random = new Random(1);
+    static Random random = new Random(20);
     static final private String FILENAME = "map.txt";
     static private ArrayList<City> cities = new ArrayList<>();
 
     static public ArrayList<Player> loadPlayers() throws Exception {
-        Player.reset();
         var players = -1;
 
         do {
@@ -35,14 +33,14 @@ public class Loader {
             String name = IO.shell.next();
 
             var roles = Player.getAvailableRoles();
-            var role = roles[random.nextInt(roles.length - 1)];
+            var role = roles.get(random.nextInt(roles.size() - 1));
 
             Player.addPlayer(name, i, Role.getRole(role));
         }
 
         System.out.println();
         System.out.println("Your Agent name is 'Rupert'");
-        Player.addPlayer(Agent.NAME, i, Role.getRole(Player.getAvailableRoles()[0]));
+        Player.addPlayer(Agent.NAME, i, Role.getRole(Player.getAvailableRoles().get(0)));
         System.out.println();
 
         return Player.getPlayers();
@@ -94,6 +92,7 @@ public class Loader {
         var playerCards = PlayerCard.getCards();
 
         if (playerCards.size() == 59) {
+            Utils.shuffle(playerCards);
             return playerCards;
         }
 
@@ -101,22 +100,36 @@ public class Loader {
             PlayerCard.addCard(city.getId(), Card.Regular, city.getColour());
         }
 
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 4; i++) {
             PlayerCard.addCard(-1, Card.Epidemic, Colour.Invalid);
         }
 
-        for (int i = 0; i < 6; i++) {
-            // todo => remove event card
-//            PlayerCard.addCard(-1, Card.Epidemic, Colour.Invalid);
-        }
+        playerCards = PlayerCard.getCards();
 
-        return PlayerCard.getCards();
+        shufflePlayerCards(playerCards);
+
+        // remove event cards
+
+        return playerCards;
+    }
+
+    private static void shufflePlayerCards(ArrayList<PlayerCard> playerCards) {
+        var startIndex = playerCards.size() - 5;
+        Utils.shuffle(playerCards, startIndex);
+
+        for (int i = startIndex; i < playerCards.size(); i++) {
+            var rand = random.nextInt(15, playerCards.size());
+            var temp = playerCards.get(rand);
+            playerCards.set(rand, playerCards.get(i));
+            playerCards.set(i, temp);
+        }
     }
 
     static public ArrayList<InfectionCard> loadInfectionCards() {
         var infectionCards = InfectionCard.getCards();
 
         if (infectionCards.size() == 48) {
+            Utils.shuffle(infectionCards);
             return infectionCards;
         }
 
@@ -126,8 +139,11 @@ public class Loader {
             InfectionCard.addCard(city.getId());
         }
 
+        infectionCards = InfectionCard.getCards();
+        Utils.shuffle(infectionCards);
+
         // loaded infection cards
-        return InfectionCard.getCards();
+        return infectionCards;
     }
 
 

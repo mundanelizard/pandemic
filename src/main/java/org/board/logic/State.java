@@ -130,11 +130,6 @@ public class State {
         players = Loader.loadPlayers();
         initialisePawns();
 
-        // shuffles cards
-        // todo => don't shuffle player cards.
-        Utils.shuffle(playerCards);
-        Utils.shuffle(infectionCards);
-
         dealPlayersCardsToPlayer();
         dealInfectionCardAndInfectionCities();
 
@@ -756,6 +751,11 @@ public class State {
      * @throws Exception if we run out of player cards.
      */
     public void dealNPlayerCardsToPlayer(int dealCount) throws Exception {
+        if (playerCardIndex >= playerCards.size()) {
+            setGameOver("Ran out of player cards");
+            return;
+        }
+
         var player = getCurrentPlayer();
         if (debug) {
             System.out.println();
@@ -858,6 +858,11 @@ public class State {
      * @throws Exception when there isn't enough infection cards.
      */
     public void dealInfectionCardAndInfectCity(int n, boolean skipCured) throws Exception {
+        if (infectionCardIndex >= infectionCards.size()) {
+            setGameOver("Ran out of infection cards");
+            return;
+        }
+
         var card = dealInfectionCard();
         var city = cities.get(card.getId());
         var suit = city.getColour();
@@ -1200,7 +1205,6 @@ public class State {
     private void remove(int cityId, int typeId, int itemId) {
         for(int i = 0; i < boardState[cityId][typeId].length; i++) {
             if (boardState[cityId][typeId][i] != itemId) continue;
-
 
             boardState[cityId][typeId][i] = -1;
         }

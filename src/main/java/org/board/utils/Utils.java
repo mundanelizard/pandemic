@@ -1,7 +1,5 @@
 package org.board.utils;
 
-import org.board.logic.Game;
-
 import java.util.ArrayList;
 import java.util.Random;
 

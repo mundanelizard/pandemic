@@ -50,4 +50,9 @@ public class PlayerCard {
 
         return newCards;
     }
+
+    @Override
+    public String toString() {
+        return "[ " + city + ", " + type + ", " + colour + "] ";
+    }
 }

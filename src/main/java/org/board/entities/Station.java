@@ -56,9 +56,9 @@ public class Station {
         var newStations = new ArrayList<Station>();
 
         for (var station : stations) {
-            new Station(station.getId());
-            station.setCity(station.getCity());
-            newStations.add(station);
+            var newStation = new Station(station.getId());
+            newStation.setCity(station.getCity());
+            newStations.add(newStation);
         }
 
         return newStations;

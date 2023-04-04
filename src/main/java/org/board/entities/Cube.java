@@ -10,7 +10,7 @@ public class Cube {
     private int city = -1;
 
 
-    private static ArrayList<Cube> cubes = new ArrayList<>();
+    private static final ArrayList<Cube> cubes = new ArrayList<>();
 
 
     private Cube(int id, Colour colour) {
@@ -19,7 +19,7 @@ public class Cube {
     }
 
     public void setCity(int city) throws Exception {
-        if (!empty()) {
+        if (!empty() && city != -1) {
             throw new Exception("Cube " + id + " is already placed on the board.");
         }
 
@@ -60,9 +60,9 @@ public class Cube {
         var newCubes = new ArrayList<Cube>();
 
         for (var cube : cubes) {
-            new Cube(cube.getId(), cube.getColour());
-            cube.setCity(cube.getCity());
-            newCubes.add(cube);
+            var newCube = new Cube(cube.getId(), cube.getColour());
+            newCube.setCity(cube.getCity());
+            newCubes.add(newCube);
         }
 
         return newCubes;

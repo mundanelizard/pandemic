@@ -53,7 +53,10 @@ public class Player {
 
     public void removeNCardsOfSuit(Colour suit, int n) throws Exception {
         int count = 0;
-        for (var card : cards) {
+
+        var hand = new ArrayList<>(cards);
+
+        for (var card : hand) {
             if (count >= n) break;
             if (card.getColour() != suit) continue;
 
@@ -83,16 +86,18 @@ public class Player {
     }
 
     public static ArrayList<Player> getPlayers(ArrayList<Player> players) {
-        var list = new ArrayList<Player>();
+        var newPlayers = new ArrayList<Player>();
 
         for(var player : players) {
             var newPlayer = new Player(player.name, player.pawn, player.role);
             newPlayer.city = player.city;
-            players.add(newPlayer);
+            newPlayer.cards.addAll(player.cards);
+            newPlayers.add(newPlayer);
         }
 
-        return list;
+        return newPlayers;
     }
+
 
     public static void addPlayer(String name, int pawn, Role role) throws Exception {
         if (players == null) {

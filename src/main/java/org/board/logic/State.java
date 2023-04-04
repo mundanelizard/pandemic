@@ -24,6 +24,14 @@ public class State {
      */
     private int[][][] boardState;
     private int outbreakMarkerState = 0;
+
+    public boolean debug = true;
+
+    public int getOutbreakMarkerState() {
+        return outbreakMarkerState;
+    }
+
+    private int epidemics = 0;
     /**
      * 0 - inactive
      * 1 - cure found
@@ -42,6 +50,10 @@ public class State {
      * 6. infection rate is 4
      */
     private int infectionRateMarkerState = 0;
+
+    public int getInfectionRateMarkerState() {
+        return infectionRateMarkerState;
+    }
 
     private ArrayList<PlayerCard> playerCards = new ArrayList<>();
     private int playerCardIndex = 0;
@@ -70,7 +82,7 @@ public class State {
     }
 
     public State deepClone() throws Exception {
-        var state = new State();
+        var state = new State(false);
 
         state.boardState = Utils.copy3dArray(boardState);
         state.outbreakMarkerState = outbreakMarkerState;
@@ -94,7 +106,21 @@ public class State {
         state.failed = failed;
         state.status = status;
 
+        state.epidemics = epidemics;
+
         return state;
+    }
+
+    public int getEpidemics() {
+        return epidemics;
+    }
+
+    public int getTurn() {
+        return turn;
+    }
+
+    public int[] getCureIndicatorState() {
+        return cureIndicatorState;
     }
 
     private void initialise() throws Exception {
@@ -122,9 +148,26 @@ public class State {
         running = true;
     }
 
+    public int getFreeCubesCount() {
+        int count = 0;
+
+        for (var cube : cubes) {
+            if (cube.getCity() == -1) continue;
+            count += 1;
+        }
+
+        return count;
+    }
+
+    public int getCubesOnBoardCount() {
+        return cubes.size() - getFreeCubesCount();
+    }
+
     private void dealInfectionCardAndInfectionCities() throws Exception {
-        System.out.println();
-        System.out.println("* Initial infection deal");
+        if (debug) {
+            System.out.println();
+            System.out.println("* Initial infection deal");
+        }
 
         dealInfectionCardAndInfectCity( 3);
         dealInfectionCardAndInfectCity(3);
@@ -184,6 +227,16 @@ public class State {
         this.failed = true;
     }
 
+    public int getPlayersCardsCount() {
+        var count = 0;
+
+        for (var player : players) {
+            count += player.getHand().size();
+        }
+
+        return count;
+    }
+
     public boolean isFailed() {
         return failed;
     }
@@ -202,8 +255,14 @@ public class State {
 
     /* Handling Actions */
     public void performAction(Option choice, int n) throws Exception {
-        System.out.println("---");
-        System.out.println("!Performing action " + choice.getName());
+        if (debug) {
+            System.out.println("---");
+            System.out.println("- - Performing action " + choice.getName());
+        }
+
+        if (!running) {
+            return;
+        }
 
         var player = getCurrentPlayer();
 
@@ -221,7 +280,7 @@ public class State {
                 handleCharterFlight(player, choice.getDisposeCard(), choice.getEndCity());
                 break;
             case BuildResearchStation:
-                handleBuildAResearchStation(player, choice.getSuit());
+                handleBuildAResearchStation(player, choice.getDisposeCard());
                 break;
             case TreatDiseaseRemoveOneCube:
                 handleTreatDiseaseRemoveOneCube( player,  choice.getSuit());
@@ -237,38 +296,55 @@ public class State {
                 break;
             case Invalid:
             default:
-                // todo => set exit reason --
                 setGameOver("Invalid player action choice " + choice.getType());
         }
 
-        // todo => check if they won.
+        checkWin();
 
         if (!running) {
             return;
         }
 
-        dealNPlayerCardsToPlayer(2);
-        dealInfectionCardAndInfectCityForTurn();
-
         if (n != 4) return;
 
+        dealNPlayerCardsToPlayer(2);
+        dealInfectionCardAndInfectCityForTurn();
         increaseTurn();
-        System.out.println("Player " + player.getName() + " has completed his turn");
+
+        if (debug)
+            System.out.println("Player " + player.getName() + " has completed his turn");
+    }
+
+    private void checkWin() {
+        int cures = 0;
+
+        for (var cure : cureIndicatorState) {
+            if (cure == 0) continue;
+            cures += 1;
+        }
+
+        if (cures == cureIndicatorState.length) {
+            running = false;
+        }
     }
 
     private void handleShuttleFlight(Player player, int endCity) {
         placePawn(player, endCity);
-        System.out.println("! Player " + player.getName() + " took a shuttle to #" + endCity);
+        if (debug)
+            System.out.println("! Player " + player.getName() + " took a shuttle to #" + endCity);
     }
 
     private void handleDiscoverACure(Player player, int suit) throws Exception {
         player.removeNCardsOfSuit(Colour.values()[suit], 5);
         placeStation(player.getCity());
-        cureIndicatorState[suit] = 1;
-        System.out.println("! Player " + player.getName() + " discovered cure for " + Colour.values()[suit]);
+        var suitIndexInIndicator = suit - 1;
+        cureIndicatorState[suitIndexInIndicator] = 1;
+
+        if (debug)
+            System.out.println("! Player " + player.getName() + " discovered cure for " + Colour.values()[suit]);
     }
 
-    private void handleTreatDiseaseRemoveOneCube(Player player, int suit) throws Exception {
+    private void handleTreatDiseaseRemoveOneCube(Player player, int suit) {
         var cubesOnBoard = Utils.getItemsOnBoard(boardState, State.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
 
         for (var cube : cubesOnBoard) {
@@ -279,7 +355,9 @@ public class State {
         }
 
         resolveEradication(suit);
-        System.out.println("! Player " + player.getName() + " removed a disease cube from #" + player.getCity());
+
+        if (debug)
+            System.out.println("! Player " + player.getName() + " removed a disease cube from #" + player.getCity());
     }
 
     private void resolveEradication(int suit) {
@@ -290,12 +368,14 @@ public class State {
 
         if (count != 0) return;
 
-        System.out.println("** Yay! Eradicated disease " + Colour.values()[suit]);
+        if (debug)
+            System.out.println("** Yay! Eradicated disease " + Colour.values()[suit]);
+
         // mark the disease as eradicated.
         cureIndicatorState[suit] = 2;
     }
 
-    private void handleTreatDiseaseRemoveAll(Player player, int suit) throws Exception {
+    private void handleTreatDiseaseRemoveAll(Player player, int suit) {
         var cubesOnBoard = Utils.getItemsOnBoard(boardState, State.BOARD_STATE_DISEASE_CUBE_INDEX, cubes, player.getCity());
 
         for (var cube : cubesOnBoard) {
@@ -305,29 +385,33 @@ public class State {
         }
 
         resolveEradication(suit);
-        System.out.println("! Player " + player.getName() + " removed all disease cubes in #" + player.getCity());
+
+        if (debug)
+            System.out.println("! Player " + player.getName() + " removed all disease cubes in #" + player.getCity());
     }
 
-    private void handleBuildAResearchStation(Player player, int suit) throws Exception {
-        var cards = player.getHand();
+    private void handleBuildAResearchStation(Player player, int cardIndex) throws Exception {
+        var card = player.removeCard(cardIndex);
 
-        int count = 0;
-        for (var card : cards) {
-            if (count == 5) break;
-            if (card.getColour() != Colour.values()[suit])
-                continue;
-
-            cards.remove(card);
-            count ++;
-        }
-
-        if (count != 5){
-            running = false;
-            setGameOver("Card count not enough to create research station you have " + count + " cards");
+        if (card.getCity() != player.getCity()) {
+            throw new Exception("Player city #" + player.getCity() + " doesn't match card city #" + card.getCity());
         }
 
         placeStation(player.getCity());
-        System.out.println("! Player " + player.getName() + " built a research station in #" + player.getCity());
+
+        if (debug)
+            System.out.println("! Player " + player.getName() + " built a research station in #" + player.getCity());
+    }
+
+    public int getResearchStationsCount() {
+        var count = 0;
+
+        for(var station : stations) {
+            if (station.empty()) continue;
+            count += 1;
+        }
+
+        return count;
     }
 
     private void handleCharterFlight(Player player, int cardIndex, int endCity) {
@@ -340,7 +424,9 @@ public class State {
         }
 
         placePawn(player, endCity);
-        System.out.println("! Player " + player.getName() + " chartered flight to #" + endCity);
+
+        if(debug)
+            System.out.println("! Player " + player.getName() + " chartered flight to #" + endCity);
     }
 
     private void handleDirectFlight(Player player, int cardIndex, int endCity) {
@@ -354,7 +440,8 @@ public class State {
 
         placePawn(player, endCity);
 
-        System.out.println("! Player " + player.getName() + " flew directly #" + endCity);
+        if (debug)
+            System.out.println("! Player " + player.getName() + " flew directly #" + endCity);
     }
 
     private void handleDriveOrFerry(Player player, int city) {
@@ -364,7 +451,9 @@ public class State {
     private void handleTransferCard(Player player, Player endPlayer, int cardIndex) {
         var card = player.removeCard(cardIndex);
         endPlayer.addCard(card);
-        System.out.println("! Transferred card [" + card.getCity() + ", " +  card.getType() + "] to " + endPlayer.getName());
+
+        if (debug)
+            System.out.println("! Transferred card [" + card.getCity() + ", " +  card.getType() + "] to " + endPlayer.getName());
     }
 
     public void dealPlayersCardsToPlayer() {
@@ -377,8 +466,11 @@ public class State {
                 dealCount = 3;
             }
 
-            System.out.println();
-            System.out.println("* Dealing " + dealCount + " cards to " + player.getName());
+            if (debug) {
+                System.out.println();
+                System.out.println("* Dealing " + dealCount + " cards to " + player.getName());
+            }
+
             for (int i = 0; i < dealCount; i++) {
                 player.addCard(dealPlayerCard());
             }
@@ -387,8 +479,10 @@ public class State {
 
     public void dealNPlayerCardsToPlayer(int dealCount) throws Exception {
         var player = getCurrentPlayer();
-        System.out.println();
-        System.out.println("* Dealing " + dealCount + " cards to " + player.getName());
+        if (debug) {
+            System.out.println();
+            System.out.println("* Dealing " + dealCount + " cards to " + player.getName());
+        }
 
         for (int i = 0; i < dealCount; i++) {
             var card = dealPlayerCard();
@@ -398,9 +492,13 @@ public class State {
                 continue;
             }
 
-            System.out.println("An got dealt an epidemic card. Resolving epidemic...");
+            if (debug)
+                System.out.println("!!! An got dealt an epidemic card. Resolving epidemic...");
+
             resolveEpidemic();
-            System.out.println("Epidemic Resolved");
+
+            if (debug)
+                System.out.println("!!! Epidemic Resolved");
 
             if (!running) {
                 return;
@@ -409,6 +507,7 @@ public class State {
     }
 
     private void resolveEpidemic() throws Exception {
+        epidemics += 1;
         // todo => increase the infection rate marker
         infectionRateMarkerState += 1;
 
@@ -418,15 +517,21 @@ public class State {
             return;
         }
 
-        System.out.println();
-        System.out.println("**Reshuffling infection cards deck.");
+        if (debug) {
+            System.out.println();
+            System.out.println("**Reshuffling infection cards deck.");
+        }
+
         Utils.shuffle(infectionCards, infectionCardIndex);
         infectionCardIndex = 0;
     }
 
     public PlayerCard dealPlayerCard() {
         var playerCard = playerCards.get(playerCardIndex);
-        System.out.println("** Dealing: dealing card #" + playerCard.getCity() + " of type " + playerCard.getType() + " of colour " + playerCard.getColour() );
+
+        if (debug)
+            System.out.println("** Dealing: dealing card #" + playerCard.getCity() + " of type " + playerCard.getType() + " of colour " + playerCard.getColour() );
+
         playerCardIndex += 1;
         return playerCard;
     }
@@ -453,8 +558,11 @@ public class State {
     }
 
     private void resolveOutbreak(City city, Colour suit) throws Exception {
-        System.out.println();
-        System.out.println("* An outbreak occurred of disease " + suit + "  Resolving outbreak in city " + city.getName() + " #" + city.getId());
+        if (debug) {
+            System.out.println();
+            System.out.println("* An outbreak occurred of disease " + suit + "  Resolving outbreak in city " + city.getName() + " #" + city.getId());
+        }
+
         outbreakMarkerState += 1;
 
         if (outbreakMarkerState >= 8) {
@@ -474,7 +582,9 @@ public class State {
 
 
     public void placeNCubesInCity(City city, Colour suit, int n) throws Exception {
-        System.out.println("** Infecting: added " + n + " " + suit + " cubes on " + city.getName() + " #" + city.getId() );
+        if (debug)
+            System.out.println("** Infecting: added " + n + " " + suit + " cubes on " + city.getName() + " #" + city.getId() );
+
         var cubesOfSuitOnBoard = 0;
 
 
@@ -505,8 +615,8 @@ public class State {
         }
     }
 
-    public void removeCube(Cube cube, int cityId) throws Exception {
-        cube.setCity(-1);
+    public void removeCube(Cube cube, int cityId) {
+        cube.remove();
         Utils.remove(boardState, cityId, State.BOARD_STATE_DISEASE_CUBE_INDEX, cube.getId());
     }
 
@@ -577,15 +687,15 @@ public class State {
     }
 
     private void loadDiscoverCureOptions(ArrayList<Option> actions) {
-        // check if you can discover a cure if the players i greater than 20
-        var cures = getDiseaseCures(getCurrentPlayer().getHand());
+        // check if you can discover a cure
+        var suits = getCurableDiseasesSuits(getCurrentPlayer().getHand());
 
-        for (var cure : cures) {
+        for (var suit : suits) {
             // don't display the disease if it has been cured
-            if (cureIndicatorState[cure] == 1) continue;
+            if (cureIndicatorState[suit - 1] == 1) continue;
 
-            var option = new Option("Cure disease of colour " + Colour.values()[cure]);
-            option.setSuit( cure);
+            var option = new Option("Cure disease of colour " + Colour.values()[suit]);
+            option.setSuit(suit);
             option.setType(OptionType.DiscoverACure);
             actions.add(option);
         }
@@ -601,7 +711,7 @@ public class State {
             if (insertedCubeSuits[colour]) continue;
 
             insertedCubeSuits[colour] = true;
-            var curred = cureIndicatorState[city.getColour().ordinal()];
+            var curred = cureIndicatorState[city.getColour().ordinal() - 1];
 
             // you can remove a disease cube from the board or all if it has been cured.
             // if it is the last cube of a curred disease it is eradicated
@@ -641,7 +751,7 @@ public class State {
             var city = cities.get(card.getCity());
             var cityName = city.getName();
 
-            var cardIndex = playerCards.indexOf(card);
+            var cardIndex = player.getHand().indexOf(card);
 
             if (card.getCity() == player.getCity()) {
                 // you can discard card to move to any city.
@@ -653,7 +763,7 @@ public class State {
                 actions.add(option);
             } else if(card.getCity() != -1) {
                 // you can discard card to fly directly to the city
-                var option = new Option("Dispose [" + card.getCity() + ", " + cityName + ", " + card.getColour() + "] to teleport to " + cityName);
+                var option = new Option("Dispose [" + card.getCity() + ", " + cityName + ", " + card.getColour() + "] to direct fly to " + cityName);
                 option.setType(OptionType.DirectFlight);
                 option.setDisposeCard(cardIndex);
                 option.setEndCity(card.getCity());
@@ -678,7 +788,7 @@ public class State {
     }
 
 
-    private ArrayList<Integer> getDiseaseCures(ArrayList<PlayerCard> cards) {
+    private ArrayList<Integer> getCurableDiseasesSuits(ArrayList<PlayerCard> cards) {
         var cures = new ArrayList<Integer>();
 
         if (cards.size() < 5) {
@@ -690,6 +800,9 @@ public class State {
         for (var card : cards) {
             // counting the number of cards of the same colour
             var colour = card.getColour();
+
+            if (colour == Colour.Invalid) continue;
+
             map[colour.ordinal()] += 1;
         }
 
@@ -709,12 +822,11 @@ public class State {
         for (var city: cities) {
             if (city.getId() == currentCity) continue;
 
-            var option = new Option("Dispose [" + card.getCity() + ", " + cardCityName + ", " + card.getColour() + "] to teleport to " + city.getName());
+            var option = new Option("Dispose [" + card.getCity() + ", " + cardCityName + ", " + card.getColour() + "] to fly to " + city.getName());
             option.setDisposeCard(cardIndex);
             option.setEndCity(city.getId());
             option.setType(OptionType.CharterFlight);
             actions.add(option);
         }
     }
-
 }

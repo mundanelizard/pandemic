@@ -22,12 +22,17 @@ public class Game {
         if (state.isFailed()) {
             System.out.println("Game Over: " + state.getStatus());
         } else {
-            System.out.println("Congratulations you won!");
+            System.out.println("Congratulations you've discovered the cure to all the disease!");
         }
     }
 
     private void handleGamePlay() throws Exception {
         var player = state.getCurrentPlayer();
+
+        if (player.getPawn() == agent.getPlayer().getPawn()) {
+            agent.play(state);
+            return;
+        }
 
         switch (IO.getPlayerChoice(player)) {
             case PerformAction -> handlePerformAction();
@@ -37,7 +42,6 @@ public class Game {
             case QuitGame -> handleQuitGame();
             default -> throw new Exception("Invalid choice");
         }
-
     }
 
     private void handleQuitGame() {
@@ -57,19 +61,11 @@ public class Game {
     }
 
     private void handlePerformAction() throws Exception {
-        var player = state.getCurrentPlayer();
-
-        if (player == agent.getPlayer()) {
-            agent.play(state);
-            return;
-        }
-
         // travels all the possible state for the current game
         for (int i = 1; i <= 4 && state.isRunning(); i++) {
             var options = state.getAllPossibleActions();
             var choice = IO.getPlayerActionChoice(options, state.getCurrentPlayer(), i);
             state.performAction(choice, i);
         }
-
     }
 }

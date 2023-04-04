@@ -11,42 +11,47 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.Scanner;
 
+/**
+ * Handles loading game initial state.
+ */
 public class Loader {
     static Random random = new Random(20);
     static final private String FILENAME = "map.txt";
     static private ArrayList<City> cities = new ArrayList<>();
 
+    /**
+     * Loads users from shell input
+     * @return a list of players
+     * @throws Exception when there is an issue in creating a player
+     */
     static public ArrayList<Player> loadPlayers() throws Exception {
-        var players = -1;
+        var players = IO.getPlayerCount();
 
-        do {
-            System.out.println("How many players do you want (1 - 3)? The agent is always a player in each game.");
-            System.out.print("> ");
-
-            players = IO.shell.nextInt();
-        } while(players < 1 || players > 3);
-
-        int i;
-        for (i = 0; i < players; i++) {
-            System.out.println("What's player " + (i + 1) + " name?");
-            System.out.print("> ");
-            String name = IO.shell.next();
-
+        int playerIndex;
+        // create the users.
+        for (playerIndex = 0; playerIndex < players; playerIndex++) {
+            var name = IO.getPlayerName(playerIndex);
             var roles = Player.getAvailableRoles();
             var role = roles.get(random.nextInt(roles.size() - 1));
 
-            Player.addPlayer(name, i, Role.getRole(role));
+            Player.addPlayer(name, playerIndex, Role.getRole(role));
         }
 
+        // creating the agent
         System.out.println();
         System.out.println("Your Agent name is 'Rupert'");
-        Player.addPlayer(Agent.NAME, i, Role.getRole(Player.getAvailableRoles().get(0)));
+        Player.addPlayer(Agent.NAME, playerIndex, Role.getRole(Player.getAvailableRoles().get(0)));
         System.out.println();
 
         return Player.getPlayers();
     }
 
-    static public ArrayList<Station> loadStations() throws Exception {
+
+    /**
+     * Loads all the stations for the game.
+     * @return a list of stations.
+     */
+    static public ArrayList<Station> loadStations() {
         var stations = Station.getStations();
 
         if (stations.size() == 6) {
@@ -60,7 +65,11 @@ public class Loader {
         return Station.getStations();
     }
 
-    static public ArrayList<Cube> loadCubes() throws Exception {
+    /**
+     * Loads all the disease cubes 96
+     * @return a list of disease cubes
+     */
+    static public ArrayList<Cube> loadCubes()  {
         for (var colour : Colour.values()) {
             if (colour == Colour.Invalid) continue;
 
@@ -74,6 +83,10 @@ public class Loader {
         return Cube.getCubes();
     }
 
+    /**
+     * Initialise the board state and set everything to -1 representing empty.
+     * @return an empty boards state.
+     */
     static public int[][][] loadEmptyBoardState() {
         int[][][] boardState = new int[48][3][24];
 
@@ -88,14 +101,11 @@ public class Loader {
         return boardState;
     }
 
+    /**
+     * Loads all the player cards
+     * @return a list of player cards
+     */
     static public ArrayList<PlayerCard> loadPlayerCards() {
-        var playerCards = PlayerCard.getCards();
-
-        if (playerCards.size() == 59) {
-            Utils.shuffle(playerCards);
-            return playerCards;
-        }
-
         for (var city : cities) {
             PlayerCard.addCard(city.getId(), Card.Regular, city.getColour());
         }
@@ -104,19 +114,20 @@ public class Loader {
             PlayerCard.addCard(-1, Card.Epidemic, Colour.Invalid);
         }
 
-        playerCards = PlayerCard.getCards();
+        var playerCards = PlayerCard.getCards();
 
+        // shuffles the cards according to the rules.
         shufflePlayerCards(playerCards);
-
-        // remove event cards
 
         return playerCards;
     }
 
     private static void shufflePlayerCards(ArrayList<PlayerCard> playerCards) {
         var startIndex = playerCards.size() - 5;
+        // shuffles first part excluding epidemic cards
         Utils.shuffle(playerCards, startIndex);
 
+        // shuffles epidemic cards into early deck starting at 15
         for (int i = startIndex; i < playerCards.size(); i++) {
             var rand = random.nextInt(15, playerCards.size());
             var temp = playerCards.get(rand);
@@ -125,35 +136,29 @@ public class Loader {
         }
     }
 
+    /**
+     * Loads the infection deck required.
+     * @return the empty infection deck
+     */
     static public ArrayList<InfectionCard> loadInfectionCards() {
-        var infectionCards = InfectionCard.getCards();
-
-        if (infectionCards.size() == 48) {
-            Utils.shuffle(infectionCards);
-            return infectionCards;
-        }
-
-
         // 48 cards representing each city
         for (var city : cities) {
             InfectionCard.addCard(city.getId());
         }
 
-        infectionCards = InfectionCard.getCards();
+        var infectionCards = InfectionCard.getCards();
         Utils.shuffle(infectionCards);
 
         // loaded infection cards
         return infectionCards;
     }
 
-
+    /**
+     * Loads a city graph
+     * @return a list of cities
+     * @throws Exception when it fails ot load city grpah
+     */
     static public ArrayList<City> loadCityGraph() throws Exception {
-        cities = City.getCities();
-
-        if (cities.size() == 48) {
-            return cities;
-        }
-
         var handle = new File(FILENAME);
         var reader = new Scanner(handle);
 
@@ -165,6 +170,10 @@ public class Loader {
         return cities;
     }
 
+    /**
+     * Loads city from file scanner.
+     * @param reader scanner with access to file.
+     */
     private static void loadCities(Scanner reader) {
         for(int id = 0; reader.hasNextLine(); id++) {
             var line = reader.nextLine();
@@ -179,6 +188,11 @@ public class Loader {
         }
     }
 
+    /**
+     * Loads connections for the city graph
+     * @param reader scanner with access to the map file.
+     * @throws Exception when it fails to connect cities together.
+     */
     private static void loadConnections(Scanner reader) throws Exception {
         while(reader.hasNextLine()) {
             var line = reader.nextLine();
@@ -191,6 +205,5 @@ public class Loader {
 
             City.connect(firstCity, secondCity);
         }
-
     }
 }

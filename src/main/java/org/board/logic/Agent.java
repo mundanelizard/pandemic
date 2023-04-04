@@ -20,9 +20,9 @@ public class Agent {
     final int INFECTION_RATE_WEIGHT = 10;
     final int CURE_WEIGHT = 80;
     final int EPIDEMICS_WEIGHT = -10;
-    final int OUTBREAK_WEIGHT = -50;
+    final int OUTBREAK_WEIGHT = -10;
     final int GAME_OVER_WEIGHT = -100;
-    final int RESEARCH_STATION_WEIGHT = 10;
+    final int RESEARCH_STATION_WEIGHT = 50;
 
 
     static final public String NAME = "Rupert";

@@ -11,6 +11,12 @@ public class Utils {
         shuffle(items, items.size());
     }
 
+    /**
+     * Shuffles the dec and ends on specific number.
+     * @param items the item has been run.
+     * @param end the end of the
+     * @param <T>
+     */
     public static<T> void shuffle(ArrayList<T> items, int end) {
         for (int currentIndex = 0; currentIndex < end; currentIndex++) {
             int newIndex = random.nextInt(end);

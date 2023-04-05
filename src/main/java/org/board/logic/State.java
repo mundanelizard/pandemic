@@ -196,8 +196,15 @@ public class State {
         return turn;
     }
 
-    public int[] getCureIndicatorState() {
-        return cureIndicatorState;
+    public int getCureCount() {
+        int cures = 0;
+
+        for (var cure : cureIndicatorState) {
+            if (cure == 0) continue;
+            cures += 1;
+        }
+
+        return cures;
     }
 
     /**
@@ -692,13 +699,7 @@ public class State {
      * Checks if all the disease has been cured. If they've been cured it sate the running state to false.
      */
     private void checkWin() {
-        int cures = 0;
-
-        for (var cure : cureIndicatorState) {
-            if (cure == 0) continue;
-            cures += 1;
-        }
-
+        int cures = getCureCount();
         if (cures == cureIndicatorState.length) {
             running = false;
         }
@@ -951,11 +952,6 @@ public class State {
      */
     public void placeStation(int city) throws Exception {
         var station = Station.getEmptyStation(stations);
-
-        if (station == null) {
-            setGameOver("Out of stations.");
-            return;
-        }
 
         station.setCity(city);
     }

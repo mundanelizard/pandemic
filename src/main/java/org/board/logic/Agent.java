@@ -2,29 +2,30 @@ package org.board.logic;
 
 import org.board.entities.Option;
 import org.board.entities.Player;
+import org.board.utils.IO;
 
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.stream.IntStream;
 
-record Outcome(Option option, double epidemics, double rating, double cards) {
-    @Override
-    public String toString() {
-        return "Option: " + option.getName() + "\n\t\t rating -> " + rating + " epidemic -> " + epidemics + " cards " + cards;
-    }
-}
 
 public class Agent {
+    public record Outcome(Option option, double epidemics, double rating, double cards) {
+        @Override
+        public String toString() {
+            return "Option: " + option.getName() + "\n\t\t rating -> " + rating + " epidemic -> " + epidemics + " cards " + cards;
+        }
+    }
+
 
     /* Weights for evaluation function */
-    final int CUBES_ON_BOARD_WEIGHT = 10;
-    final int CUBES_FREE_CUBES_WEIGHT = 10;
-    final int INFECTION_RATE_WEIGHT = 10;
-    final int CURE_WEIGHT = 80;
-    final int EPIDEMICS_WEIGHT = -10;
-    final int OUTBREAK_WEIGHT = -10;
+    final int CUBES_FREED_WEIGHT = 20;
+    final int INFECTION_RATE_WEIGHT = -50;
+    final int CURE_WEIGHT = 200;
+    final int EPIDEMICS_WEIGHT = -80;
+    final int OUTBREAK_WEIGHT = -100;
     final int GAME_OVER_WEIGHT = -100;
-    final int RESEARCH_STATION_WEIGHT = 50;
+    final int RESEARCH_STATION_WEIGHT = 60;
+    final int WINNING_WEIGHT = 1000;
 
 
     /*  agent name */
@@ -51,7 +52,7 @@ public class Agent {
      * @throws Exception whe the game state errors.
      */
     public void play(State state) throws Exception {
-        System.out.println("Agent is performing is actions");
+        System.out.println("Agent is performing his actions");
 
         for (int i = 1; i <= 4; i++) {
             var outcomes = getRankedBestOptions(state);
@@ -60,16 +61,7 @@ public class Agent {
         }
     }
 
-    /**
-     * Prints outcomes in a user readable manner.
-     * @param outcomes outcomes to print
-     */
-    public void printOutcomes(ArrayList<Outcome> outcomes) {
-        for(var outcome : outcomes) {
-            System.out.println(outcome);
-            System.out.println();
-        }
-    }
+
 
     /**
      * Gets a list of all the outcomes ranked by their points.
@@ -145,6 +137,21 @@ public class Agent {
         return new Outcome(action, epidemics, rating, cards);
     }
 
+    /**
+     * Handles agent consultation and gets user response on action to take.
+     * @param state the game state
+     * @param player the player whose turn it is.
+     * @throws Exception when the game state errors during an action or traversal.
+     */
+    public void consult(State state, Player player) throws Exception {
+        System.out.println("\nConsulting agent " + getPlayer().getName());
+
+        for (int actionCount = 1; actionCount <= 4; actionCount++) {
+            var outcomes = getRankedBestOptions(state);
+            var choice = IO.getPlayerPreferredOutcome(outcomes, player.getName(), getPlayer().getName(), actionCount);
+            state.performAction(choice.option(), actionCount);
+        }
+    }
 
     /**
      * Evaluation function for the board states.
@@ -155,30 +162,28 @@ public class Agent {
     private int rateState(State beginState, State endState) {
         // higher better - lower worse
 
-        // get number of cubes on board difference
-        var cubes = (beginState.getCubesOnBoardCount() - endState.getCubesOnBoardCount()) * CUBES_ON_BOARD_WEIGHT;
-
         // get number of free cubes;
-        var freeCubes = (beginState.getFreeCubesCount() - endState.getFreeCubesCount()) * CUBES_FREE_CUBES_WEIGHT;
+        var cubesFreed = (endState.getFreeCubesCount() - beginState.getFreeCubesCount()) * CUBES_FREED_WEIGHT;
 
         // get infection rate difference
-        var infectionRate = (beginState.getInfectionRateMarkerState() - endState.getInfectionRateMarkerState()) * INFECTION_RATE_WEIGHT;
+        var infectionRate = (endState.getInfectionRateMarkerState() - beginState.getInfectionRateMarkerState()) * INFECTION_RATE_WEIGHT;
 
         // get cure indicator difference
-        var cure = (IntStream.of(beginState.getCureIndicatorState()).sum() - IntStream.of(endState.getCureIndicatorState()).sum()) * CURE_WEIGHT;
+        var cure = (endState.getCureCount() - beginState.getCureCount()) * CURE_WEIGHT;
 
         // get epidemics difference
-        var epidemics = (beginState.getEpidemics() - endState.getEpidemics()) * EPIDEMICS_WEIGHT;
+        var epidemics = (endState.getEpidemics() - beginState.getEpidemics()) * EPIDEMICS_WEIGHT;
 
         // check if the game is over difference
         var failed = endState.isFailed() ? GAME_OVER_WEIGHT : 0;
+        var winning = !endState.isRunning() && !endState.isFailed() ? WINNING_WEIGHT : 0;
 
         // check outbreak marker difference
-        var outbreaks = (beginState.getOutbreakMarkerState() - endState.getOutbreakMarkerState()) * OUTBREAK_WEIGHT;
+        var outbreaks = (endState.getOutbreakMarkerState() - beginState.getOutbreakMarkerState()) * OUTBREAK_WEIGHT;
 
         // research stations difference
-        var stations = (beginState.getResearchStationsCount() - endState.getResearchStationsCount()) * RESEARCH_STATION_WEIGHT;
+        var stations = (endState.getResearchStationsCount() - beginState.getResearchStationsCount()) * RESEARCH_STATION_WEIGHT;
 
-        return cubes + freeCubes + infectionRate + cure + epidemics + failed + outbreaks + stations;
+        return cubesFreed + infectionRate + cure + epidemics + failed + outbreaks + stations + winning;
     }
 }

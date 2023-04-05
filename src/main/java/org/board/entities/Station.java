@@ -103,6 +103,9 @@ public class Station {
             }
         }
 
-        return null;
+        var station = stations.get(0);
+        station.empty();
+
+        return station;
     }
 }

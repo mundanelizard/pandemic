@@ -3,6 +3,7 @@ package org.board.utils;
 import org.board.entities.Player;
 import org.board.enumerables.Choice;
 import org.board.entities.Option;
+import org.board.logic.Agent;
 
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -109,5 +110,44 @@ public class IO {
         System.out.println("What's player " + (index + 1) + " name?");
         System.out.print("> ");
         return IO.shell.next();
+    }
+
+    /**
+     * Gets a player preferred action via shell.
+     * @param outcomes outcomes of the actions
+     * @param playerName the player name
+     * @param agentName the agent name
+     * @param actionCount the current action count
+     * @return the player's choice.
+     */
+    public static Agent.Outcome getPlayerPreferredOutcome(ArrayList<Agent.Outcome> outcomes, String playerName, String agentName, int actionCount) {
+        var choice = -1;
+
+        do {
+            if (choice != -1) {
+                System.out.println("Invalid choice " + choice + "! try again.");
+            }
+            System.out.println("\n\n");
+            System.out.println(agentName + "> Hello " + playerName + "!");
+            System.out.println(agentName + "> Here's a ranked list of all the best options for action " + actionCount + "/4 :");
+            printOutcomes(outcomes, agentName);
+            System.out.print("> ");
+
+            choice = shell.nextInt();
+        } while (choice >= outcomes.size() || choice < 0);
+
+        return outcomes.get(choice);
+    }
+
+    /**
+     * Prints outcomes in a user readable manner.
+     * @param outcomes outcomes to print
+     */
+    public static void printOutcomes(ArrayList<Agent.Outcome> outcomes, String agentName) {
+        for(int outcomeIndex = 0; outcomeIndex < outcomes.size(); outcomeIndex++) {
+            var outcome = outcomes.get(outcomeIndex);
+            System.out.println(agentName + "> Enter (" + outcomeIndex + ") " + outcome);
+            System.out.println();
+        }
     }
 }

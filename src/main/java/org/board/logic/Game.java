@@ -72,8 +72,8 @@ public class Game {
     /**
      * Handles the consulting agent logic
      */
-    private void handleConsultAgent() {
-//        agent.consult(state, state.getCurrentPlayer());
+    private void handleConsultAgent() throws Exception {
+        agent.consult(state, state.getCurrentPlayer());
     }
 
     /**
